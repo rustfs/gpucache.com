@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="GPUCache offloads KV cache for LLM inference onto BlueField DPUs and NVMe flash, giving GPU clusters a shared L4 context-memory tier."
+    />
+    <title>GPUCache | KV Cache Offload for GPU Clusters</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="RustFS GPUCache home">
+        <span class="brand-symbol">RustFS</span>
+        <span class="brand-divider"></span>
+        <span class="brand-product">GPUCache</span>
+      </a>
+      <nav class="nav-links" aria-label="Page sections">
+        <a href="#vision">Vision</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#comparison">Comparison</a>
+        <a href="#roadmap">Roadmap</a>
+      </nav>
+      <a class="nav-cta" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noreferrer">GitHub</a>
+    </header>
+
+    <main id="top">
+      <section class="hero brand-blue">
+        <div class="container hero-grid">
+          <div class="hero-copy" data-reveal>
+            <p class="kicker">KV cache offload for LLM inference</p>
+            <h1>L4 context memory for GPU clusters.</h1>
+            <p class="hero-lede">
+              GPUCache moves long-context KV cache out of HBM and into a shared NVMe flash tier built on BlueField DPUs, RDMA, and SPDK.
+            </p>
+            <div class="actions">
+              <a class="button button-dark" href="#architecture">Read the architecture</a>
+              <a class="button button-light" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noreferrer">View on GitHub</a>
+            </div>
+          </div>
+          <aside class="hero-panel" data-reveal>
+            <span>Rust on BlueField</span>
+            <strong>RDMA + SPDK + NVMe flash</strong>
+            <p>The hot path stays close to the NIC, DPU, and SSDs instead of bouncing through host CPUs.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="vision">
+        <div class="container two-column">
+          <div class="section-title" data-reveal>
+            <p class="kicker dark">The problem</p>
+            <h2>Stop paying the recompute tax.</h2>
+          </div>
+          <div class="section-body" data-reveal>
+            <p>
+              Long-context LLM inference puts pressure on GPU HBM. Once KV cache no longer fits in VRAM, serving stacks either evict it or recompute it later, which burns GPU cycles on work the model has already done.
+            </p>
+            <p>
+              GPUCache puts that cache in an EBOF NVMe tier controlled by BlueField DPUs. The goal is a storage path with RDMA, SPDK, and no x86 storage host in the hot path.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section strip brand-black">
+        <div class="container strip-grid" data-reveal>
+          <div>
+            <p class="kicker">The core move</p>
+            <h2>Take x86 storage nodes out of the hot path.</h2>
+          </div>
+          <p>
+            GPUs read and write context over RDMA to NVMe flash behind a BlueField DPU. The fast path avoids host CPU scheduling, host DRAM copies, and the normal TCP/IP storage stack.
+          </p>
+        </div>
+      </section>
+
+      <section class="section architecture" id="architecture">
+        <div class="container">
+          <div class="section-heading" data-reveal>
+            <p class="kicker dark">Architecture</p>
+            <h2>A DPU-first storage path for KV cache.</h2>
+          </div>
+          <div class="architecture-grid">
+            <article data-reveal>
+              <span>01</span>
+              <h3>Rust, no GC pauses</h3>
+              <p>Rust keeps tail latency predictable and memory use tight on the ARM cores inside the DPU.</p>
+            </article>
+            <article data-reveal>
+              <span>02</span>
+              <h3>EBOF without a host server</h3>
+              <p>GPUCache runs on BlueField-3/4 DPUs and uses SPDK to manage NVMe SSDs behind a PCIe switch.</p>
+            </article>
+            <article data-reveal>
+              <span>03</span>
+              <h3>RDMA end to end</h3>
+              <p>Context moves from GPU VRAM over Spectrum-X to the DPU, then into flash, without host CPU intervention.</p>
+            </article>
+            <article data-reveal>
+              <span>04</span>
+              <h3>Erasure coding on the DPU</h3>
+              <p>DOCA can push parity work onto DPU acceleration engines instead of spending CPU cycles on replication.</p>
+            </article>
+            <article data-reveal>
+              <span>05</span>
+              <h3>KV-aware prefetch and eviction</h3>
+              <p>The cache engine can track access patterns from vLLM, TensorRT-LLM, and PageAttention blocks.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section data-path brand-blue">
+        <div class="container">
+          <div class="section-heading light" data-reveal>
+            <p class="kicker">Data path</p>
+            <h2>GPU VRAM to DPU to NVMe flash.</h2>
+          </div>
+          <div class="path-row" data-reveal aria-label="GPUCache data path">
+            <div>GPU VRAM</div>
+            <span>RDMA / RoCEv2</span>
+            <div>BlueField DPU</div>
+            <span>SPDK</span>
+            <div>NVMe Flash</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section comparison" id="comparison">
+        <div class="container">
+          <div class="section-heading" data-reveal>
+            <p class="kicker dark">GPUCache vs. the status quo</p>
+            <h2>A KV-cache tier built for the GPU hot path.</h2>
+          </div>
+          <div class="table-wrap" data-reveal>
+            <table>
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Traditional Storage</th>
+                  <th>MinIO MemKV (Go)</th>
+                  <th>RustFS GPUCache (Rust)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Language</th>
+                  <td>C / C++ / Java</td>
+                  <td>Go, subject to GC pauses</td>
+                  <td>Rust, deterministic and zero-GC</td>
+                </tr>
+                <tr>
+                  <th>Data Path</th>
+                  <td>CPU → Memory → NIC</td>
+                  <td>RDMA direct to DPU</td>
+                  <td>RDMA direct to DPU</td>
+                </tr>
+                <tr>
+                  <th>Storage Engine</th>
+                  <td>File / Object (S3)</td>
+                  <td>Proprietary NixL</td>
+                  <td>KV-optimized NVMe-oF</td>
+                </tr>
+                <tr>
+                  <th>Resilience</th>
+                  <td>3x replication</td>
+                  <td>Unknown / WIP</td>
+                  <td>Hardware-offloaded erasure coding</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section roadmap" id="roadmap">
+        <div class="container roadmap-grid">
+          <div class="section-title" data-reveal>
+            <p class="kicker dark">Roadmap</p>
+            <h2>What is being built now.</h2>
+          </div>
+          <ol class="roadmap-list">
+            <li data-reveal>Core Rust KV engine.</li>
+            <li data-reveal>RDMA / RoCEv2 communication layer.</li>
+            <li data-reveal>SPDK integration for direct NVMe addressing.</li>
+            <li data-reveal>NVIDIA DOCA support for ARM cross-compilation.</li>
+            <li data-reveal>DPU hardware erasure-coding offload.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section contributors brand-black">
+        <div class="container contributors-grid" data-reveal>
+          <div>
+            <p class="kicker">Call for contributors</p>
+            <h2>Help build the DPU storage layer for LLM context.</h2>
+          </div>
+          <div>
+            <p>
+              GPUCache needs contributors who know Rust systems programming, RDMA and RoCEv2 networking, NVIDIA DOCA, BlueField DPUs, ARM64 cross-compilation, vLLM, TensorRT-LLM, and PageAttention.
+            </p>
+            <div class="actions">
+              <a class="button button-light" href="https://github.com/rustfs/gpucache/issues" target="_blank" rel="noreferrer">Browse issues</a>
+              <a class="button button-outline" href="https://github.com/rustfs/gpucache/discussions" target="_blank" rel="noreferrer">Join discussions</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

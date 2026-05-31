@@ -1,0 +1,6 @@
+# Local screenshots / generated previews
+preview*.png
+*.log
+
+# OS files
+.DS_Store
