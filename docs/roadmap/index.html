@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roadmap | GPUCache</title>
+  <meta name="description" content="GPUCache roadmap. Implemented means it is on the main branch. The engine, RDMA, SPDK, DOCA, the data path, and framework integration are in development." />
+  <link rel="canonical" href="https://gpucache.com/docs/roadmap/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/roadmap/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/roadmap/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/roadmap/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/roadmap/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/roadmap/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/roadmap/" />
+  <meta property="og:title" content="Roadmap | GPUCache" />
+  <meta property="og:description" content="GPUCache roadmap. Implemented means it is on the main branch. The engine, RDMA, SPDK, DOCA, the data path, and framework integration are in development." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/docs/roadmap/" />
+  <meta property="og:locale" content="en_US" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="RustFS GPUCache home">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
+    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/" aria-current="page">Docs</a>
+    <ul class="lang-switch" aria-label="Language"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Language"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">Docs</p>
+      <nav aria-label="Docs"><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/" aria-current="page">Roadmap</a><a href="/docs/quickstart/">Quick start</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/docs/">Docs</a> <span aria-hidden="true">/</span> <span>Roadmap</span></p>
+<p class="label">Docs</p>
+<h1>Roadmap</h1>
+<p class="lede">Status follows the main branch of the GitHub repository and is updated as that branch changes. This page does not promise a release date or a version number.</p>
+<div class="table-wrap" tabindex="0">
+  <table>
+    <thead><tr><th scope="col">Status</th><th scope="col">Item</th></tr></thead>
+    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>Open-source repository created, under the Apache 2.0 license</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>Product position and architecture direction: the G3.5 tier, a DPU-based GDS KVCache, and a split between the hot tier and RustFS at G4</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>V1 core: Rust KV engine</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>RDMA / RoCEv2 communication layer</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>SPDK integration, direct NVMe access</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>NVIDIA DOCA integration and Arm cross-compilation, BlueField-3 support</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>Data path: through host memory, then GDS direct</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>Inference framework integration (vLLM, TensorRT-LLM)</td></tr></tbody>
+  </table>
+</div>
+<div class="doc-block"><h2>How to read the two states</h2><p>Implemented means the repository exists and the direction is written down. It does not mean a cache is running.</p><p>In development means the work is not on main. The V1 core, the Rust KV engine, is in a separate pull request. A row on this page changes to implemented only after that work is on main.</p><p>As of 2026-10-15 the main branch contains README.md and LICENSE only. Unchecked items in the README are not treated here as capabilities the project already has.</p></div></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS is a trademark of RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Docs</p>
+      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Project</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 license</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Language"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

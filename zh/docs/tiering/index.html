@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>分层｜GPUCache</title>
+  <meta name="description" content="推理 KV Cache 从 G1 到 G4 的分层。GPUCache 是 G3.5 层，开发中。RustFS 是 G4 容量层。" />
+  <link rel="canonical" href="https://gpucache.com/zh/docs/tiering/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/tiering/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/tiering/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/tiering/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/tiering/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/tiering/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/tiering/" />
+  <meta property="og:title" content="分层｜GPUCache" />
+  <meta property="og:description" content="推理 KV Cache 从 G1 到 G4 的分层。GPUCache 是 G3.5 层，开发中。RustFS 是 G4 容量层。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/zh/docs/tiering/" />
+  <meta property="og:locale" content="zh_CN" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">跳到正文</a>
+<header class="site-header">
+  <a class="brand" href="/zh/" aria-label="RustFS GPUCache 首页">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">菜单</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="页面区块">
+    <a href="/zh/#problem">问题</a><a href="/zh/#approach">方案</a><a href="/zh/#architecture">架构</a><a href="/zh/#roadmap">路线图</a><a href="/zh/#rustfs">与 RustFS</a><a href="/zh/#quickstart">快速开始</a><a href="/zh/docs/" aria-current="page">文档</a>
+    <ul class="lang-switch" aria-label="语言"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="语言"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">文档</p>
+      <nav aria-label="文档"><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/" aria-current="page">分层</a><a href="/zh/docs/roadmap/">路线图</a><a href="/zh/docs/quickstart/">快速开始</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/zh/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/zh/docs/">文档</a> <span aria-hidden="true">/</span> <span>分层</span></p>
+<p class="label">文档</p>
+<h1>分层</h1>
+<p class="lede">各层采用推理 KV Cache 分层的通用说法。GPUCache 位于 G3.5，不是 G4 的另一种写法。</p>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>开发中</span><p>G3.5 上的 GPUCache 仍在开发中。下表写的是每一层预定的位置。</p></div>
+<div class="table-wrap" tabindex="0">
+  <table>
+    <thead><tr><th scope="col">层级</th><th scope="col">介质</th><th scope="col">作用域</th><th scope="col">在 KV Cache 里的角色</th><th scope="col">对应产品</th></tr></thead>
+    <tbody><tr><th scope="row">G1</th><td>GPU HBM</td><td>单块 GPU</td><td>正在生成时用到的热 KV</td><td>——</td></tr><tr><th scope="row">G2</th><td>主机 DRAM</td><td>单个节点</td><td>从 HBM 卸下来的 KV 的暂存和缓冲</td><td>——</td></tr><tr><th scope="row">G3</th><td>节点本地 NVMe SSD</td><td>单个节点</td><td>短期复用的温 KV，不跨节点共享</td><td>——</td></tr><tr class="is-g35"><th scope="row">G3.5</th><td>DPU 管理、经以太网/RDMA 接入的共享 NVMe 闪存</td><td>GPU Pod / 集群内共享</td><td>可复用的 KV Cache 热层，按需预取回 G2/G1。丢失时就是一次 miss，重算后写回</td><td>GPUCache（开发中）</td></tr><tr><th scope="row">G4</th><td>共享网络存储（对象存储）</td><td>数据中心级</td><td>持久的冷数据：模型、数据集、会话历史、推理产物</td><td>RustFS</td></tr></tbody>
+  </table>
+</div>
+<div class="doc-block"><h2>同一叠层，画出来</h2><ol class="chain" aria-label="G1 到 G4，GPUCache 在 G3.5"><li><b>G1</b><small>HBM</small></li><li><b>G2</b><small>DRAM</small></li><li><b>G3</b><small>NVMe</small></li><li class="is-current"><b>G3.5</b><small>GPUCache</small></li><li><b>G4</b><small>RustFS</small></li></ol><p class="tier-note">G3.5 是 Signal 色块。它比 G3 的节点本地 SSD 更容易共享，比 G4 的共享存储更靠近推理热路径。</p></div>
+<div class="doc-block"><h2>G3.5 与 G4 的边界</h2><p>GPUCache 不承担数据持久性。G3.5 节点故障或数据丢失时，推理框架拿到的是一次 miss，按原来的方式重算预填充，再写回 GPUCache，下次就能命中。</p><p>需要长期保存的上下文和产物存到 G4 的 RustFS。热层丢了可以重算，容量层的数据要留下来。</p></div></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/zh/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS 是 RustFS, Inc. 的商标</p>
+    </div>
+    <div>
+      <p class="label">文档</p>
+      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
+    </div>
+    <div>
+      <p class="label">项目</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 许可</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="语言"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

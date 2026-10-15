@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hiérarchie | GPUCache</title>
+  <meta name="description" content="Couches de KV Cache de G1 à G4. GPUCache est la couche G3.5, en développement. RustFS est la couche de capacité G4." />
+  <link rel="canonical" href="https://gpucache.com/fr/docs/tiering/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/tiering/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/tiering/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/tiering/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/tiering/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/tiering/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/tiering/" />
+  <meta property="og:title" content="Hiérarchie | GPUCache" />
+  <meta property="og:description" content="Couches de KV Cache de G1 à G4. GPUCache est la couche G3.5, en développement. RustFS est la couche de capacité G4." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/fr/docs/tiering/" />
+  <meta property="og:locale" content="fr_FR" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Aller au contenu</a>
+<header class="site-header">
+  <a class="brand" href="/fr/" aria-label="Accueil RustFS GPUCache">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
+    <a href="/fr/#problem">Problème</a><a href="/fr/#approach">Approche</a><a href="/fr/#architecture">Architecture</a><a href="/fr/#roadmap">Feuille de route</a><a href="/fr/#rustfs">RustFS</a><a href="/fr/#quickstart">Démarrage</a><a href="/fr/docs/" aria-current="page">Documentation</a>
+    <ul class="lang-switch" aria-label="Langue"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Langue"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">Documentation</p>
+      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/" aria-current="page">Hiérarchie</a><a href="/fr/docs/roadmap/">Feuille de route</a><a href="/fr/docs/quickstart/">Démarrage</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/fr/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/fr/docs/">Documentation</a> <span aria-hidden="true">/</span> <span>Hiérarchie</span></p>
+<p class="label">Documentation</p>
+<h1>Hiérarchie</h1>
+<p class="lede">Les noms ci-dessous sont ceux qu&#x27;on utilise d&#x27;ordinaire pour hiérarchiser le KV Cache d&#x27;inférence. GPUCache est G3.5. Ce n&#x27;est pas un autre nom pour G4.</p>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>En développement</span><p>GPUCache en G3.5 est en développement. Le tableau décrit la place prévue de chaque couche.</p></div>
+<div class="table-wrap" tabindex="0">
+  <table>
+    <thead><tr><th scope="col">Couche</th><th scope="col">Support</th><th scope="col">Portée</th><th scope="col">Rôle pour le KV Cache</th><th scope="col">Produit</th></tr></thead>
+    <tbody><tr><th scope="row">G1</th><td>HBM du GPU</td><td>Un GPU</td><td>KV chaud utilisé pendant la génération</td><td>—</td></tr><tr><th scope="row">G2</th><td>DRAM de l&#x27;hôte</td><td>Un nœud</td><td>Relais et tampon du KV déchargé du HBM</td><td>—</td></tr><tr><th scope="row">G3</th><td>SSD NVMe local au nœud</td><td>Un nœud</td><td>KV tiède pour une réutilisation courte. Pas de partage entre nœuds.</td><td>—</td></tr><tr class="is-g35"><th scope="row">G3.5</th><td>Flash NVMe partagé, géré par un DPU et joint par Ethernet ou RDMA</td><td>Partagé dans un pod GPU ou un cluster</td><td>Couche chaude de KV Cache réutilisable, ramenée vers G2 ou G1 quand il le faut. Une perte est un miss ; on recalcule, puis on réécrit.</td><td>GPUCache (en développement)</td></tr><tr><th scope="row">G4</th><td>Stockage réseau partagé (stockage objet)</td><td>Échelle du centre de données</td><td>Données froides durables : modèles, jeux de données, historique de session, produits d&#x27;inférence</td><td>RustFS</td></tr></tbody>
+  </table>
+</div>
+<div class="doc-block"><h2>La même pile, dessinée</h2><ol class="chain" aria-label="De G1 à G4, GPUCache en G3.5"><li><b>G1</b><small>HBM</small></li><li><b>G2</b><small>DRAM</small></li><li><b>G3</b><small>NVMe</small></li><li class="is-current"><b>G3.5</b><small>GPUCache</small></li><li><b>G4</b><small>RustFS</small></li></ol><p class="tier-note">G3.5 est le bloc Signal. Il se partage plus simplement que le SSD local de G3, et il est plus proche du chemin chaud d&#x27;inférence que le stockage partagé de G4.</p></div>
+<div class="doc-block"><h2>La limite entre G3.5 et G4</h2><p>GPUCache ne prend pas en charge la durabilité. Si un nœud G3.5 tombe ou si une donnée est perdue, le framework d&#x27;inférence voit un miss, refait le préremplissage comme il le ferait déjà, réécrit le résultat dans GPUCache, et l&#x27;usage suivant peut toucher.</p><p>Le contexte et les produits qui doivent rester longtemps vont à RustFS en G4. La couche chaude peut être recalculée. La couche de capacité est l&#x27;endroit où les données doivent rester.</p></div></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/fr/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS est une marque de RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Documentation</p>
+      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Projet</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Licence Apache 2.0</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Langue"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>路线图｜GPUCache</title>
+  <meta name="description" content="GPUCache 路线图。已实现表示已经在主分支上。引擎、RDMA、SPDK、DOCA、数据路径和推理框架对接都在开发中。" />
+  <link rel="canonical" href="https://gpucache.com/zh/docs/roadmap/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/roadmap/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/roadmap/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/roadmap/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/roadmap/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/roadmap/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/roadmap/" />
+  <meta property="og:title" content="路线图｜GPUCache" />
+  <meta property="og:description" content="GPUCache 路线图。已实现表示已经在主分支上。引擎、RDMA、SPDK、DOCA、数据路径和推理框架对接都在开发中。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/zh/docs/roadmap/" />
+  <meta property="og:locale" content="zh_CN" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">跳到正文</a>
+<header class="site-header">
+  <a class="brand" href="/zh/" aria-label="RustFS GPUCache 首页">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">菜单</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="页面区块">
+    <a href="/zh/#problem">问题</a><a href="/zh/#approach">方案</a><a href="/zh/#architecture">架构</a><a href="/zh/#roadmap">路线图</a><a href="/zh/#rustfs">与 RustFS</a><a href="/zh/#quickstart">快速开始</a><a href="/zh/docs/" aria-current="page">文档</a>
+    <ul class="lang-switch" aria-label="语言"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="语言"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">文档</p>
+      <nav aria-label="文档"><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/">分层</a><a href="/zh/docs/roadmap/" aria-current="page">路线图</a><a href="/zh/docs/quickstart/">快速开始</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/zh/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/zh/docs/">文档</a> <span aria-hidden="true">/</span> <span>路线图</span></p>
+<p class="label">文档</p>
+<h1>路线图</h1>
+<p class="lede">状态以 GitHub 仓库主分支为准，随版本更新。本页不承诺发布日期，也不承诺版本号。</p>
+<div class="table-wrap" tabindex="0">
+  <table>
+    <thead><tr><th scope="col">状态</th><th scope="col">事项</th></tr></thead>
+    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>已实现</span></td><td>开源仓库建立，采用 Apache 2.0 许可</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>已实现</span></td><td>产品定位与架构方向：G3.5 层、基于 DPU 的 GDS KVCache、热层与 G4 RustFS 分工</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>V1 核心：Rust KV 引擎</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>RDMA / RoCEv2 通信层</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>SPDK 集成，直接访问 NVMe</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>NVIDIA DOCA 集成与 Arm 交叉编译，BlueField-3 支持</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>数据路径：经主机内存路径 → GDS 直通</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>推理框架对接（vLLM、TensorRT-LLM）</td></tr></tbody>
+  </table>
+</div>
+<div class="doc-block"><h2>两种状态怎么读</h2><p>已实现指的是仓库已经建立、方向已经写下来。它不表示已经有一个在跑的缓存。</p><p>开发中表示这件事还不在主分支上。V1 核心，也就是 Rust KV 引擎，在另一个 pull request 里。对应行只有进入主分支之后，才会改成已实现。</p><p>截至 2026-10-15，主分支只有 README.md 和 LICENSE。README 里未勾选的事项，本站不写成项目已经具备的能力。</p></div></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/zh/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS 是 RustFS, Inc. 的商标</p>
+    </div>
+    <div>
+      <p class="label">文档</p>
+      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
+    </div>
+    <div>
+      <p class="label">项目</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 许可</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="语言"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

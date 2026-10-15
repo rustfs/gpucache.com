@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ドキュメント｜GPUCache</title>
+  <meta name="description" content="GPUCache のドキュメント。アーキテクチャ、G3.5 を含む G1 から G4 の階層、ロードマップ、開発中と明記したクイックスタート。" />
+  <link rel="canonical" href="https://gpucache.com/ja/docs/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/" />
+  <meta property="og:title" content="ドキュメント｜GPUCache" />
+  <meta property="og:description" content="GPUCache のドキュメント。アーキテクチャ、G3.5 を含む G1 から G4 の階層、ロードマップ、開発中と明記したクイックスタート。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/ja/docs/" />
+  <meta property="og:locale" content="ja_JP" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">本文へ進む</a>
+<header class="site-header">
+  <a class="brand" href="/ja/" aria-label="RustFS GPUCache ホーム">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">メニュー</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="セクション">
+    <a href="/ja/#problem">課題</a><a href="/ja/#approach">方針</a><a href="/ja/#architecture">アーキテクチャ</a><a href="/ja/#roadmap">ロードマップ</a><a href="/ja/#rustfs">RustFS</a><a href="/ja/#quickstart">クイックスタート</a><a href="/ja/docs/" aria-current="page">ドキュメント</a>
+    <ul class="lang-switch" aria-label="言語"><li><a href="/docs/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="言語"><li><a href="/docs/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <section class="section">
+    <div class="container">
+      <p class="label">ドキュメント <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></p>
+      <h1>ドキュメント</h1>
+      <p class="lede">これらの文書が書くのは設計目標です。その目標と、今日 main ブランチにあるものを分けてあります。GPUCache は開発中です。</p>
+      <ul class="doc-links"><li><a href="/ja/docs/architecture/"><strong>アーキテクチャ</strong><span>GPU、DPU、フラッシュと、三段階のデータパス。</span></a></li><li><a href="/ja/docs/tiering/"><strong>階層</strong><span>G3.5 が G1 から G4 のどこにあるか。</span></a></li><li><a href="/ja/docs/roadmap/"><strong>ロードマップ</strong><span>実装済みのものと、開発中のもの。</span></a></li><li><a href="/ja/docs/quickstart/"><strong>クイックスタート</strong><span>リリース前にできること。</span></a></li></ul>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/ja/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS は RustFS, Inc. の商標です</p>
+    </div>
+    <div>
+      <p class="label">ドキュメント</p>
+      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
+    </div>
+    <div>
+      <p class="label">プロジェクト</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 ライセンス</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="言語"><li><a href="/docs/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>
