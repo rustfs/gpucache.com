@@ -59,5 +59,5 @@ Do not introduce other blues, gradients, glows, or glass.
 - The storage side does not need an x86 storage host. KV on the hot path is not forwarded by the host CPU. Compute nodes still register memory, submit requests, and collect completions.
 - RustFS is the G4 capacity tier and owns cold-data durability. A G3.5 loss is a clean miss: recompute, then write back. Say that, and stop there.
 - Do not publish a competitor comparison, a performance number, or any community count, in any language, including the docs.
-- The main branch of <https://github.com/rustfs/GPUCache> currently contains `README.md` and `LICENSE` only. The V1 core is in development in a separate pull request and is not described as implemented.
+- The runnable path on main is the CPU and TCP contract: V1 A/B/C, the V2 TCP and sharded-directory slice, and the mock G4 cold path. V3 is a DPU feature gate and production-hardening stubs. BlueField-3, GDS, DOCA, SPDK, and live RDMA/NIXL stay in development / `NOT_RUN_HARDWARE`. Soft-RoCE is a functional smoke only, not a performance number. No erasure coding and no hot-tier durability replicas. A G3.5 miss or node loss is a clean miss, then recompute and write back. RustFS at G4 keeps cold data.
 - PagedAttention is spelled with a d. Feedback goes to Issues.

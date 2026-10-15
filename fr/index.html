@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
-    <a href="/fr/#problem">Problème</a><a href="/fr/#approach">Approche</a><a href="/fr/#architecture">Architecture</a><a href="/fr/#roadmap">Feuille de route</a><a href="/fr/#rustfs">RustFS</a><a href="/fr/#quickstart">Démarrage</a><a href="/fr/docs/">Documentation</a>
+    <a href="/fr/#problem">Problème</a><a href="/fr/#approach">Approche</a><a href="/fr/#architecture">Architecture</a><a href="/fr/#roadmap">Feuille de route</a><a href="/fr/#rustfs">RustFS</a><a href="/fr/#quickstart">Démarrage</a><a href="/fr/docs/introduction/">Introduction</a><a href="/fr/docs/usage/">Utilisation</a><a href="/fr/docs/">Documentation</a>
     <ul class="lang-switch" aria-label="Langue"><li><a href="/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -75,14 +75,14 @@
         <p class="lede">GPUCache est une couche chaude faite pour le KV Cache. Un DPU gère du flash NVMe partagé pour tout le cluster GPU.</p>
       </div>
       <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Fondé sur un DPU <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></h3><p>Le moteur KV tourne sur les cœurs Arm du DPU et gère le flash directement. Le côté stockage n&#x27;a pas besoin d&#x27;un hôte de stockage x86. La prise en charge de BlueField-3 est en développement.</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>Chemin de données GDS <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></h3><p>Le chemin visé va de la mémoire GPU au flash NVMe en passant par le DPU, sans que le CPU de l&#x27;hôte relaie les données KV. La première étape ouvre le chemin qui passe par la mémoire hôte.</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>Couche chaude seulement. Une perte est un miss.</h3><p>GPUCache ne prend pas en charge la durabilité. Une panne de nœud ou une donnée perdue est un miss net. Le framework d&#x27;inférence recalcule, réécrit, et l&#x27;usage suivant peut toucher. Les données qui doivent rester vont à RustFS en G4.</p></div></li></ol>
-      <div class="doc-block"><h3>Ce qui ne convient pas</h3><ul><li>Des données qui doivent rester. G3.5 est un cache. Les données durables vont sur RustFS en G4.</li><li>Le stockage des checkpoints d&#x27;entraînement. C&#x27;est le travail de G4.</li><li>Un déploiement en production maintenant. La V1 est encore en développement.</li></ul></div>
+      <div class="doc-block"><h3>Ce qui ne convient pas</h3><ul><li>Des données qui doivent rester. G3.5 est un cache. Les données durables vont sur RustFS en G4.</li><li>Le stockage des checkpoints d&#x27;entraînement. C&#x27;est le travail de G4.</li><li>Un déploiement en production maintenant. Le contrat CPU s'exécute depuis les sources ; le chemin matériel est en développement, et cet arbre n'est pas prêt pour la production.</li></ul></div>
     </div>
   </section>
   <section class="section section-paper" id="architecture">
     <div class="container">
       <div class="split">
         <div><p class="label">Architecture</p><h2>GPU, DPU et flash, chacun son rôle.</h2></div>
-        <p class="lede">GPUCache place le chemin chaud des données KV entre la carte réseau, le DPU et les SSD. Le schéma ci-dessous est la cible. Chaque composant est en développement.</p>
+        <p class="lede">GPUCache place le chemin chaud des données KV entre la carte réseau, le DPU et les SSD. Le schéma ci-dessous est la cible du chemin DPU. BlueField-3, GDS, RDMA et ce chemin matériel sont en développement. Le chemin exécutable aujourd'hui est le contrat CPU et TCP.</p>
       </div>
       <ol class="path" aria-label="Chemin de données cible, en développement"><li><strong>Mémoire GPU / mémoire hôte</strong></li><li class="via">RDMA / RoCEv2</li><li><strong>DPU</strong><span>Moteur KV Rust</span></li><li class="via">SPDK</li><li><strong>Flash NVMe</strong></li></ol>
       <p><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p>
@@ -99,7 +99,7 @@
       <div class="table-wrap" tabindex="0">
         <table>
           <thead><tr><th scope="col">État</th><th scope="col">Élément</th></tr></thead>
-          <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Dépôt open source créé, sous licence Apache 2.0</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Position du produit et direction d&#x27;architecture : couche G3.5, GDS KVCache fondé sur DPU, et partage entre la couche chaude et RustFS en G4</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Cœur de la V1 : moteur KV en Rust</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Couche de communication RDMA / RoCEv2</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration SPDK, accès direct au NVMe</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration NVIDIA DOCA et compilation croisée Arm, prise en charge de BlueField-3</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Chemin de données : via la mémoire hôte, puis accès direct GDS</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Raccordement aux frameworks d&#x27;inférence (vLLM, TensorRT-LLM)</td></tr></tbody>
+          <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Dépôt open source créé, sous licence Apache 2.0</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Position du produit : GPUCache est le tier chaud KV partagé en G3.5, RustFS est le tier froid en G4. Le chemin DPU et GDS est une direction, pas un chemin que cet arbre a exécuté.</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Contrat CPU V1 A/B/C : identité, protocole, MemoryStore, service TCP, backend fichier et quotas. Cette ligne n'est pas le chemin matériel.</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Tranche CPU V2 : transport TCP, enregistrement simulé, répertoire local au shard, et un mock du chemin froid G4. Un processus est un shard.</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>V3 : porte de fonctionnalité DPU et stubs de durcissement. Les périphériques ne sont pas liés.</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Couche de communication RDMA / RoCEv2</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration SPDK, accès direct au NVMe</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration NVIDIA DOCA et compilation croisée Arm, prise en charge de BlueField-3</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Chemin de données : via la mémoire hôte, puis accès direct GDS</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Raccordement aux frameworks d&#x27;inférence (vLLM, TensorRT-LLM)</td></tr></tbody>
         </table>
       </div>
       <p class="footnote"><a href="/fr/docs/roadmap/">Comment lire cette feuille de route</a></p>
@@ -118,21 +118,23 @@
   <section class="section" id="quickstart">
     <div class="container">
       <div class="split">
-        <div><p class="label">Démarrage <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p><h2>La V1 est encore en développement. Voici ce qui est possible maintenant.</h2></div>
-        <div class="prose"><p>Le cœur V1 de GPUCache est en développement. Il n&#x27;y a pas encore de version installable. Les étapes d&#x27;installation et de déploiement seront écrites ici à la publication de la V1.</p></div>
+        <div><p class="label">Démarrage <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p><h2>Exécuter le contrat CPU depuis les sources. Le chemin matériel est en développement.</h2></div>
+        <div class="prose"><p>Il n'y a pas de paquet installable et pas de déploiement de production. Le contrat CPU et TCP est sur main. Clonez le dépôt et suivez le <a href="/fr/docs/usage/">manuel d'utilisation</a>. BlueField-3, GDS, le chemin matériel DPU et une performance RDMA ou NIXL réelle sont en développement.</p></div>
       </div>
-      <ol class="steps"><li>Mettre une étoile ou suivre le dépôt sur <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a> pour être prévenu d&#x27;une publication.</li><li>Lire la description d&#x27;architecture dans le <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a>.</li><li>Ouvrir une <a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">issue</a> avec le scénario : framework d&#x27;inférence, longueur de contexte, taille du cluster.</li></ol>
-      <pre data-copy="Copier" data-copied="Copié"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span></code></pre>
-      <p class="footnote">La branche main ne contient pas encore de code applicatif, donc cette page ne donne ni commande de build ni commande d&#x27;exécution. <a href="/fr/docs/quickstart/">Notes de démarrage</a></p>
+      <ol class="steps"><li>Cloner <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">github.com/rustfs/GPUCache</a>. Rust stable, MSRV 1.85, est choisi par <code>rust-toolchain.toml</code>.</li><li>Exécuter <code>cargo test --workspace --all-targets</code>. C'est la repro du contrat CPU. Les octets sont synthétiques.</li><li>TCP en loopback, démos, quotas et miss propre : <a href="/fr/docs/usage/">manuel d'utilisation</a>.</li></ol>
+      <pre data-copy="Copier" data-copied="Copié"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span>
+<span class="kw">cd</span> GPUCache
+<span class="kw">cargo test</span> --workspace --all-targets</code></pre>
+      <p class="footnote">Soft-RoCE est un smoke fonctionnel seulement, pas un chiffre de performance. Un miss G3.5 ou un nœud perdu est un miss propre : recalcul, puis réécriture. Pas d'erasure coding et pas de réplica de durabilité sur le tier chaud. <a href="/fr/docs/usage/">Manuel d'utilisation</a></p>
     </div>
   </section>
   <section class="section section-paper" id="docs">
     <div class="container">
       <div class="split">
         <div><p class="label">Documentation</p><h2>Lire la cible de conception.</h2></div>
-        <p class="lede">Quatre notes couvrent l&#x27;architecture, le modèle de couches, ce qui est réalisé, et ce qui est possible avant une publication.</p>
+        <p class="lede">L'introduction et le manuel d'utilisation rejoignent l'architecture, la hiérarchie, la feuille de route et le démarrage.</p>
       </div>
-      <ul class="doc-links"><li><a href="/fr/docs/architecture/"><strong>Architecture</strong><span>GPU, DPU et flash, et les trois étapes du chemin de données.</span></a></li><li><a href="/fr/docs/tiering/"><strong>Hiérarchie</strong><span>Où se place G3.5 entre G1 et G4.</span></a></li><li><a href="/fr/docs/roadmap/"><strong>Feuille de route</strong><span>Ce qui est réalisé, et ce qui est en développement.</span></a></li><li><a href="/fr/docs/quickstart/"><strong>Démarrage</strong><span>Ce qui est possible avant une publication.</span></a></li></ul>
+      <ul class="doc-links"><li><a href="/fr/docs/introduction/"><strong>Introduction</strong><span>Position, G3.5 et G4, et un protocole depuis un seul nœud.</span></a></li><li><a href="/fr/docs/usage/"><strong>Utilisation</strong><span>Installation, démarrage, démos, configuration, quotas, miss, exploitation.</span></a></li><li><a href="/fr/docs/architecture/"><strong>Architecture</strong><span>GPU, DPU et flash, et les trois étapes du chemin de données.</span></a></li><li><a href="/fr/docs/tiering/"><strong>Hiérarchie</strong><span>Où se place G3.5 entre G1 et G4.</span></a></li><li><a href="/fr/docs/roadmap/"><strong>Feuille de route</strong><span>Ce qui est réalisé, et ce qui est en développement.</span></a></li><li><a href="/fr/docs/quickstart/"><strong>Démarrage</strong><span>Ce qui est possible avant une publication.</span></a></li></ul>
     </div>
   </section>
   <section class="section cta" id="participate">
@@ -156,7 +158,7 @@
     </div>
     <div>
       <p class="label">Documentation</p>
-      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
+      <ul class="footer-links"><li><a href="/fr/docs/introduction/">Introduction</a></li><li><a href="/fr/docs/usage/">Utilisation</a></li><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
     </div>
     <div>
       <p class="label">Projet</p>

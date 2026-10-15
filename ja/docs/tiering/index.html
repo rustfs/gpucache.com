@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">メニュー</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="セクション">
-    <a href="/ja/#problem">課題</a><a href="/ja/#approach">方針</a><a href="/ja/#architecture">アーキテクチャ</a><a href="/ja/#roadmap">ロードマップ</a><a href="/ja/#rustfs">RustFS</a><a href="/ja/#quickstart">クイックスタート</a><a href="/ja/docs/" aria-current="page">ドキュメント</a>
+    <a href="/ja/#problem">課題</a><a href="/ja/#approach">方針</a><a href="/ja/#architecture">アーキテクチャ</a><a href="/ja/#roadmap">ロードマップ</a><a href="/ja/#rustfs">RustFS</a><a href="/ja/#quickstart">クイックスタート</a><a href="/ja/docs/introduction/">紹介</a><a href="/ja/docs/usage/">使い方</a><a href="/ja/docs/" aria-current="page">ドキュメント</a>
     <ul class="lang-switch" aria-label="言語"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -46,13 +46,13 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">ドキュメント</p>
-      <nav aria-label="ドキュメント"><a href="/ja/docs/architecture/">アーキテクチャ</a><a href="/ja/docs/tiering/" aria-current="page">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a></nav>
+      <nav aria-label="ドキュメント"><a href="/ja/docs/introduction/">紹介</a><a href="/ja/docs/usage/">使い方</a><a href="/ja/docs/architecture/">アーキテクチャ</a><a href="/ja/docs/tiering/" aria-current="page">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/ja/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/ja/docs/">ドキュメント</a> <span aria-hidden="true">/</span> <span>階層</span></p>
 <p class="label">ドキュメント</p>
 <h1>階層</h1>
 <p class="lede">各層の名前は、推論 KV Cache の階層で普通に使う呼び方です。GPUCache は G3.5 です。G4 の別名ではありません。</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>開発中</span><p>G3.5 の GPUCache は開発中です。表は、各層が占める予定の位置を書いています。</p></div>
+<div class="callout"><span class="status status-done"><i aria-hidden="true"></i>実装済み</span><span class="status status-preview"><i aria-hidden="true"></i>開発中</span><p>表は層のモデルです。今日動くのは通常ファイル上の CPU と TCP の契約です。BlueField-3、GDS、DPU のハードウェア経路は開発中です。G3.5 のミスまたはノード喪失はクリーンミスです。再計算し、書き戻します。イレイジャーコーディングはなく、ホット層の耐久レプリカもありません。冷データは G4 の RustFS が保持します。</p></div>
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">層</th><th scope="col">媒体</th><th scope="col">範囲</th><th scope="col">KV Cache での役割</th><th scope="col">製品</th></tr></thead>
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">ドキュメント</p>
-      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
+      <ul class="footer-links"><li><a href="/ja/docs/introduction/">紹介</a></li><li><a href="/ja/docs/usage/">使い方</a></li><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
     </div>
     <div>
       <p class="label">プロジェクト</p>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>利用マニュアル｜GPUCache</title>
+  <meta name="description" content="GPUCache の使い方。ソースからの導入、ループバック TCP の起動、デモ、クォータ、クリーンミス。ハードウェア経路は開発中。" />
+  <link rel="canonical" href="https://gpucache.com/ja/docs/usage/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/usage/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/usage/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/usage/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/usage/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/usage/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/usage/" />
+  <meta property="og:title" content="利用マニュアル｜GPUCache" />
+  <meta property="og:description" content="GPUCache の使い方。ソースからの導入、ループバック TCP の起動、デモ、クォータ、クリーンミス。ハードウェア経路は開発中。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/ja/docs/usage/" />
+  <meta property="og:locale" content="ja_JP" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">本文へ進む</a>
+<header class="site-header">
+  <a class="brand" href="/ja/" aria-label="RustFS GPUCache ホーム">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">メニュー</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="セクション">
+    <a href="/ja/#problem">課題</a><a href="/ja/#approach">方針</a><a href="/ja/#architecture">アーキテクチャ</a><a href="/ja/#roadmap">ロードマップ</a><a href="/ja/#rustfs">RustFS</a><a href="/ja/#quickstart">クイックスタート</a><a href="/ja/docs/introduction/">紹介</a><a href="/ja/docs/usage/" aria-current="page">使い方</a><a href="/ja/docs/">ドキュメント</a>
+    <ul class="lang-switch" aria-label="言語"><li><a href="/docs/usage/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/usage/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/usage/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/usage/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/usage/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="言語"><li><a href="/docs/usage/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/usage/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/usage/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/usage/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/usage/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">ドキュメント</p>
+      <nav aria-label="ドキュメント"><a href="/ja/docs/introduction/">紹介</a><a href="/ja/docs/usage/" aria-current="page">使い方</a><a href="/ja/docs/architecture/">アーキテクチャ</a><a href="/ja/docs/tiering/">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/ja/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/ja/docs/">ドキュメント</a> <span aria-hidden="true">/</span> <span>使い方</span></p>
+<p class="label">使い方</p>
+<h1>利用マニュアル</h1>
+<p class="lede">次の手順は、きれいなチェックアウトから CPU と TCP の契約を実行します。パッケージのインストール、ディスクのフォーマット、DPU のオープンはしません。BlueField-3、GDS、DPU のハードウェア経路、実 RDMA / NIXL の性能は開発中のままです。</p>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>開発中</span><p>本番配置はなく、crates.io への公開もありません。Soft-RoCE は機能スモークだけで、性能値ではありません。G3.5 のミスまたはノード喪失はクリーンミスです。再計算し、書き戻します。イレイジャーコーディングはなく、ホット層の耐久レプリカもありません。RustFS は G4 の冷層です。</p></div>
+<nav class="manual-toc" aria-label="このページ"><a href="#install">導入</a><a href="#start">起動</a><a href="#demo">デモ</a><a href="#config">設定</a><a href="#quotas">クォータ</a><a href="#failure">ミス</a><a href="#ops">運用メモ</a></nav>
+<div class="doc-block" id="install"><h2>導入</h2>
+<p><code>rust-toolchain.toml</code> が Rust stable を選びます。宣言された MSRV は 1.85 です。インストールできるパッケージはありません。リポジトリをクローンし、CPU 契約のテストを実行します。</p>
+<pre data-copy="コピー" data-copied="コピーしました"><code>git clone https://github.com/rustfs/GPUCache.git
+cd GPUCache
+cargo test --workspace --all-targets</code></pre>
+<p><code>cargo test --workspace --all-targets</code> は V1 A、V1 B、V1 C のワンコマンド CPU 再現であり、ツリーにある V2 と V3 の CPU テストも覆います。バイトは合成です。vLLM の KV テンソルではなく、このコマンドは帯域の結果でもありません。CI は <code>cargo fmt --all -- --check</code> と <code>cargo clippy --workspace --all-targets -- -D warnings</code> も実行します。</p></div>
+<div class="doc-block" id="start"><h2>起動</h2>
+<p>明示しない限り、TCP サービスはループバックを聴きます。既定のバインドは <code>127.0.0.1:9735</code> です。ループバック以外には <code>--allow-remote</code> が要ります。このフラグは認証を切りません。プロセスは引き続きテナント資格情報のフィンガープリントを要求します。32 バイト、16 進、全ゼロ不可です。生の秘密ではなくハッシュを渡します。認証のないデータ経路はありません。</p>
+<pre data-copy="コピー" data-copied="コピーしました"><code>cargo run -p gpucache-transport --bin gpucache-tcp -- serve --data-dir /tmp/gpucache-dev --tenant tenant-a --trust td-local --fingerprint &lt;64 hex chars of a credential hash&gt;</code></pre>
+<p><code>--data-dir</code> は通常ファイルのディレクトリです（<code>MANIFEST</code>、<code>LRU</code>、<code>blocks/*.gblk</code>）。デバイスノードを指さないでください。プロセスは NVMe をフォーマットせず、NIC を変えず、DPU にも触れません。ディスク上の設定ファイルはありません。フラグがスキーマです。この例は開発用ループバックだけです。</p></div>
+<div class="doc-block" id="demo"><h2>デモ</h2>
+<p>各バナーは正しさの確認です。性能値ではありません。BlueField-3、GDS、ライブ RDMA は <code>NOT_RUN_HARDWARE</code> のままです。</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th scope="col">コマンド</th><th scope="col">成功バナー</th><th scope="col">内容</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>cargo run -p gpucache-transport --bin share-demo</code></th><td><code>status=REUSE_OK</code> と <code>partial_prefix=WHOLE_BLOCK_PREFIX</code></td><td>2 つのローカルホストクライアントが 1 つのファイルバックエンドを共有します。長い鎖は短いブロック全体を再利用します。より短い <code>valid_length</code> は切り出されません。<code>intra_block_slice=DEGRADED_MISS</code>。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-transport --bin fault-demo</code></th><td><code>status=FALLBACK_OK</code>、<code>criteria=EXACT_TOKEN_IDS</code>、<code>tolerance=NONE</code></td><td>ヒット、ミス、壊れたファイル、期限、キャンセル、クォータ拒否はフェイルクローズです。呼び出し側が再計算します。誤ったテナントやモデルはヒットではありません。vLLM の実行ではありません。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-transport --bin shard-demo</code></th><td><code>status=SHARD_OK</code>、<code>registration=SIMULATED</code>、<code>rdma=NOT_RUN_HARDWARE</code></td><td>1 シャード、エポックのフェンス、リース期限をまたぐ隔離、TCP のホストコピー。NIC 登録ではありません。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-cold --bin cold-demo</code></th><td><code>status=COLD_CONTRACT_OK</code> と <code>gds=NOT_RUN_HARDWARE</code></td><td>G4 のモックパック、シンク、予算で止めるリフィル。エンドポイントが無いとき <code>rustfs_live=NOT_RUN_HARDWARE</code> です。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-dpu --bin dpu-demo</code></th><td><code>status=DPU_CONTRACT_OK</code>、<code>offload_active=false</code>、<code>hardware=NOT_RUN_HARDWARE</code>、<code>doca=NOT_LINKED</code></td><td>プロセス内の DPU 契約です。デバイスは開きません。Arm プロセスの起動はオフロードではありません。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-bench --bin paired-baseline</code></th><td><code>NOT_RUN_HARDWARE</code>、時間は出さない</td><td>対の GPU 基準線は実行しません。サンプル数、TTFT、tokens/s は出しません。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-bench --bin v3-paired</code></th><td><code>TCO_UNKNOWN</code> と <code>go_gate=NOT_EVALUATED</code></td><td>NIC RDMA と DPU の比較に名前を付けるだけで、測定しません。TCP はその基準線ではありません。</td></tr>
+<tr><th scope="row"><code>cargo test -p gpucache-dpu --all-targets --features dpu-bf3</code></th><td>テストは通り、オープンは拒否</td><td>任意フィーチャースロットです。DOCA、SPDK、NVMe はリンクしません。</td></tr>
+<tr><th scope="row"><code>cargo test -p gpucache-transport --all-targets --features rdma-nixl</code></th><td><code>NixlTransport::open</code> が拒否</td><td>libnixl はリンクしません。Soft-RoCE は機能スモークだけで、性能値ではありません。</td></tr>
+</tbody>
+</table></div>
+<p><code>kv-block-xfer</code> は標準入力の <code>GEXP</code> フレームを 1 つ読み、新しい <code>MemoryStore</code> へインポートします。lookup と get が成功したときだけ <code>status=IMPORTED</code> を出します。チェックサム失敗は終了コード 2 です。エンジンには話しません。</p>
+<pre data-copy="コピー" data-copied="コピーしました"><code>cargo run -p gpucache-storage --bin kv-block-xfer -- import &lt;64 hex chars of a credential hash&gt;</code></pre></div>
+<div class="doc-block" id="config"><h2>設定</h2>
+<p>設定ファイルはありません。バイナリのフラグと <code>ResourceLimits::dev_defaults()</code> がスキーマです。</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th scope="col">フィールド</th><th scope="col">既定</th><th scope="col">意味</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>bind</code></th><td><code>127.0.0.1:9735</code></td><td>ソケット。ループバック以外は <code>allow_remote</code> が要ります。テストはポート 0 です。</td></tr>
+<tr><th scope="row"><code>data_dir</code></th><td>必須</td><td>通常ファイルのディレクトリ。デバイスノードではありません。</td></tr>
+<tr><th scope="row"><code>tenant</code>、<code>trust</code>、<code>fingerprint</code></th><td>必須</td><td>1 つの V1 ポリシー。フィンガープリントは 32 バイトで、全ゼロ不可です。</td></tr>
+<tr><th scope="row"><code>allow_remote</code></th><td><code>false</code></td><td>認証は無効になりません。</td></tr>
+<tr><th scope="row"><code>max_connections</code></th><td>16</td><td>超過した接続は落とします。</td></tr>
+<tr><th scope="row"><code>max_frame_bytes</code></th><td>ライブラリは 1 MiB、バイナリは 2 MiB</td><td>本体の上限。宣言が大きければ読む前に拒否します。</td></tr>
+<tr><th scope="row"><code>pool_buffers</code></th><td>16</td><td>読みバッファプール。上限でチェックアウトは失敗します。</td></tr>
+<tr><th scope="row"><code>io_timeout</code></th><td>5 s</td><td>接続ごとの読み書きタイムアウト。</td></tr>
+</tbody>
+</table></div>
+<p>オペレータがテストバケットを認可していない限り、<code>GPUCACHE_RUSTFS_ENDPOINT</code>、<code>GPUCACHE_RUSTFS_BUCKET</code>、<code>GPUCACHE_RUSTFS_PREFIX</code>、<code>GPUCACHE_RUSTFS_ACCESS_KEY</code>、<code>GPUCACHE_RUSTFS_SECRET_KEY</code> は未設定のままにしてください。未設定は <code>NOT_RUN_HARDWARE</code> です。資格情報を作らないでください。このマイルストーンの <code>https://</code> は、TLS スタックが無いため <code>NOT_RUN_HARDWARE</code> です。</p></div>
+<div class="doc-block" id="quotas"><h2>クォータ</h2>
+<p><code>ResourceLimits</code> は、オブジェクトサイズ、インフライト要求、登録（コミット済みと隔離済みのバッファを含む）、テナントごとのインフライトバイト、全体の保持バイト、テナントごとの保持バイトを境界にします。冪等表には上限があり、項目は期限切れになります。</p>
+<p><code>MemoryStore</code> は退避せず、受付を拒否します。<code>FileStore</code> は、保持バイトのクォータが失敗しそうなとき、ピンされていない最も古いコミット済みブロックを退避します。テナントクォータのために別テナントを退避せず、ピン済みまたは隔離済みのブロックも退避しません。<code>Invalidate</code> がクライアントの明示経路です。</p>
+<p>シャードクレジット、模擬スラブ上限、コールド保持、バックフィルのバイト予算は、再計算できる KV の受付天井です。測ったクラスタ規模ではありません。ホット層を利用者データの唯一のコピーとして寸法取りしないでください。</p></div>
+<div class="doc-block" id="failure"><h2>失敗とミス</h2>
+<p>GPUCache は G3.5 の共有ホット層です。RustFS は G4 の冷層です。G3.5 のミスまたはノード喪失は、クリーンミス、再計算、書き戻しです。イレイジャーコーディングはなく、ホット層の耐久レプリカもありません。</p>
+<ul>
+<li>ヒットは、互換なアイデンティティを持ち、チェックサムがまだ一致する <code>COMMITTED</code> ブロックだけです。</li>
+<li><code>ABSENT</code>、<code>RESERVED</code>、<code>WRITING</code>、<code>EVICTING</code>、<code>QUARANTINED</code> はペイロードを返しません。</li>
+<li>ミス、タイムアウト、チェックサム失敗、バージョン不一致、ストア停止、予算超過のリフィル、フェンスされたエポック、壊れたまたは切れたファイル、トランスポートエラーは再計算です。成功したヒットではありません。</li>
+<li>誤ったテナント、モデル、トークナイザ、アダプタ、レイアウトはヒットではありません。誤ったヒットは故障です。</li>
+<li>同じハッシュ鎖のより短い <code>valid_length</code> は非互換ミスです。サービスはブロック内部を切りません。</li>
+<li>リース期限は、コピーが止まった証明にはなりません。隔離領域は、ドレイン証明か、より新しいフェンス済みエポックまで残ります。</li>
+<li>再起動はコミット済みファイルを読み直し、エポックを上げ、進行中の予約を落とします。</li>
+<li>DPU 再起動、GPU リセット、NIC の瞬断、ストレージ喪失、NVMe タイムアウト、制御プレーン喪失、RustFS の遅延または停止の劣化判断は、すべてクリーンミスです。この表はハードウェア故障注入ではありません。ペイロードなし、誤ヒットなし、恒久ブロックなしです。</li>
+</ul>
+<p>エンジンは同じバッチ API で、再計算したブロックを書き戻せます。ホット層は失ったブロックを自分では修復しません。</p></div>
+<div class="doc-block" id="ops"><h2>運用メモ</h2>
+<p><code>dpu-demo</code> は診断のスケッチです。<code>dpu-bf3</code> を選んだか、DOCA / SPDK / NVMe がリンクされていないか、ホット層のイレイジャーコーディングがオフか、計画中の各対象が <code>NOT_RUN_HARDWARE</code> かを出します。ペイロード、フィンガープリント、プロンプトは出しません。デバイスを開いていないので、デバイスの健全性カウンタはありません。</p>
+<p><code>ControlPlane::begin_upgrade</code> は新しいフィルを止めます。進行中のフィルは完了できます。finish 前の <code>rollback</code> はフェンスせずにサービスへ戻します。<code>finish_upgrade</code> はソフトウェア世代を上げてフェンスするので、古いエポックはミスになり、エンジンが再計算します。finish 後の <code>rollback</code> は再びフェンスします。世代カウンタは減りません。このロールバックに BlueField ファームウェア、BFB、DOCA パッケージは含まれません。エラー応答のクォータ種別バイト 8（<code>RateLimit</code>）を除き、TCP のワイヤ形式は変わりません。</p>
+<p>リバランスはソースをフェンスし、空の宛先ディレクトリを返します。障害ドメインの隔離はそのドメインのメンバーを外し、最後のメンバーの削除は拒否します。いずれもペイロードバイトはコピーしません。</p>
+<p>このツリーが操作しないもの：NVMe フォーマット、DPU モード変更、ファームウェア、IOMMU または BIOS の変更、本番ネットワークの変更。G4 のライブ呼び出しは環境変数のゲートのままです。あとから誰かが Soft-RoCE をスモークしても、それは機能スモークだけで、性能値ではありません。</p>
+<p>位置づけと層の分担は <a href="/ja/docs/introduction/">紹介マニュアル</a> です。上流の詳細は <a href="https://github.com/rustfs/GPUCache/blob/main/docs/OPERATIONS.md" target="_blank" rel="noopener noreferrer">OPERATIONS.md</a> と <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README.md</a> です。</p></div>
+</article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/ja/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS は RustFS, Inc. の商標です</p>
+    </div>
+    <div>
+      <p class="label">ドキュメント</p>
+      <ul class="footer-links"><li><a href="/ja/docs/introduction/">紹介</a></li><li><a href="/ja/docs/usage/">使い方</a></li><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
+    </div>
+    <div>
+      <p class="label">プロジェクト</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 ライセンス</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="言語"><li><a href="/docs/usage/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/usage/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/usage/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/usage/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/usage/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

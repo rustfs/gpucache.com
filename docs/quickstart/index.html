@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Quick start | GPUCache</title>
-  <meta name="description" content="GPUCache quick start. V1 is in development. There is no installable release. The only command on this page is git clone." />
+  <meta name="description" content="GPUCache quick start. Run the CPU and TCP contract from source. There is no installable package. Hardware paths are in development." />
   <link rel="canonical" href="https://gpucache.com/docs/quickstart/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/quickstart/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/quickstart/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/quickstart/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/quickstart/" />
   <meta property="og:title" content="Quick start | GPUCache" />
-  <meta property="og:description" content="GPUCache quick start. V1 is in development. There is no installable release. The only command on this page is git clone." />
+  <meta property="og:description" content="GPUCache quick start. Run the CPU and TCP contract from source. There is no installable package. Hardware paths are in development." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/docs/quickstart/" />
   <meta property="og:locale" content="en_US" />
@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
-    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/" aria-current="page">Docs</a>
+    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/introduction/">Introduction</a><a href="/docs/usage/">Usage</a><a href="/docs/" aria-current="page">Docs</a>
     <ul class="lang-switch" aria-label="Language"><li><a href="/docs/quickstart/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/quickstart/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/quickstart/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/quickstart/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/quickstart/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -46,17 +46,19 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Docs</p>
-      <nav aria-label="Docs"><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/">Roadmap</a><a href="/docs/quickstart/" aria-current="page">Quick start</a></nav>
+      <nav aria-label="Docs"><a href="/docs/introduction/">Introduction</a><a href="/docs/usage/">Usage</a><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/">Roadmap</a><a href="/docs/quickstart/" aria-current="page">Quick start</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/docs/">Docs</a> <span aria-hidden="true">/</span> <span>Quick start</span></p>
 <p class="label">Quick start <span class="status status-preview"><i aria-hidden="true"></i>In development</span></p>
 <h1>Quick start</h1>
 <div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In development</span><p>There is no installable release. Do not treat this page as a deployment guide.</p></div>
-<p class="lede">The V1 core of GPUCache is in development in a separate pull request and is not on the main branch. Install and deploy steps will be written here when V1 is released.</p>
-<ol class="steps"><li>Star or Watch the repository on <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a> so a release shows up in your notifications.</li><li>Read the architecture notes in the <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a>.</li><li>Open an <a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">issue</a> with your scenario: inference framework, context length, and cluster size.</li></ol>
-<pre data-copy="Copy" data-copied="Copied"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span></code></pre>
-<p class="footnote">The main branch does not contain application code yet, so this page does not include build or run commands.</p>
-<div class="doc-block"><h2>What is not here yet</h2><ul><li>No installable package.</li><li>No build instructions.</li><li>No run instructions.</li><li>No deployment guide.</li></ul></div>
+<p class="lede">There is no installable package. The commands below run the CPU and TCP contract from a checkout. They do not deploy a DPU. The full notes are in the <a href="/docs/usage/">usage manual</a>.</p>
+<ol class="steps"><li>Clone <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">github.com/rustfs/GPUCache</a>. Rust stable, MSRV 1.85, is selected by <code>rust-toolchain.toml</code>.</li><li>Run <code>cargo test --workspace --all-targets</code>. That is the CPU contract repro. The bytes are synthetic.</li><li>Read the <a href="/docs/usage/">usage manual</a> for the loopback TCP service, demos, quotas, and clean-miss behavior.</li></ol>
+<pre data-copy="Copy" data-copied="Copied"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span>
+<span class="kw">cd</span> GPUCache
+<span class="kw">cargo test</span> --workspace --all-targets</code></pre>
+<p class="footnote">This page is not a production deploy. Hardware paths print <code>NOT_RUN_HARDWARE</code>. See the <a href="/docs/usage/">usage manual</a>.</p>
+<div class="doc-block"><h2>What this page does not claim</h2><ul><li>No installable package and no production deploy.</li><li>BlueField-3, GDS, the DPU hardware path, and real RDMA or NIXL performance are in development.</li><li>Soft-RoCE is a functional smoke only, not a performance number.</li><li>No erasure coding and no hot-tier durability replica. A loss is a clean miss.</li></ul></div>
 <div class="doc-block"><h2>Related notes</h2><p><a href="/docs/architecture/">Architecture</a> · <a href="/docs/roadmap/">Roadmap</a></p></div></article>
   </div>
 </main>
@@ -68,7 +70,7 @@
     </div>
     <div>
       <p class="label">Docs</p>
-      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
+      <ul class="footer-links"><li><a href="/docs/introduction/">Introduction</a></li><li><a href="/docs/usage/">Usage</a></li><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
     </div>
     <div>
       <p class="label">Project</p>

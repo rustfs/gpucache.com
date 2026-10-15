@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">メニュー</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="セクション">
-    <a href="/ja/#problem">課題</a><a href="/ja/#approach">方針</a><a href="/ja/#architecture">アーキテクチャ</a><a href="/ja/#roadmap">ロードマップ</a><a href="/ja/#rustfs">RustFS</a><a href="/ja/#quickstart">クイックスタート</a><a href="/ja/docs/" aria-current="page">ドキュメント</a>
+    <a href="/ja/#problem">課題</a><a href="/ja/#approach">方針</a><a href="/ja/#architecture">アーキテクチャ</a><a href="/ja/#roadmap">ロードマップ</a><a href="/ja/#rustfs">RustFS</a><a href="/ja/#quickstart">クイックスタート</a><a href="/ja/docs/introduction/">紹介</a><a href="/ja/docs/usage/">使い方</a><a href="/ja/docs/" aria-current="page">ドキュメント</a>
     <ul class="lang-switch" aria-label="言語"><li><a href="/docs/architecture/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/architecture/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/architecture/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/architecture/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/architecture/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -46,21 +46,21 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">ドキュメント</p>
-      <nav aria-label="ドキュメント"><a href="/ja/docs/architecture/" aria-current="page">アーキテクチャ</a><a href="/ja/docs/tiering/">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a></nav>
+      <nav aria-label="ドキュメント"><a href="/ja/docs/introduction/">紹介</a><a href="/ja/docs/usage/">使い方</a><a href="/ja/docs/architecture/" aria-current="page">アーキテクチャ</a><a href="/ja/docs/tiering/">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/ja/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/ja/docs/">ドキュメント</a> <span aria-hidden="true">/</span> <span>アーキテクチャ</span></p>
 <p class="label">ドキュメント <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></p>
 <h1>アーキテクチャ</h1>
 <p class="lede">GPUCache は KV データのホットパスを、NIC、DPU、SSD の間に置きます。以下は設計目標です。</p>
 <div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>開発中</span><p>BlueField-3 対応、DPU と GDS の直通パス、vLLM と TensorRT-LLM との接続は、いずれも開発中です。</p></div>
-<div class="doc-block"><h2>main ブランチにあるもの</h2><p>2026-10-15 時点で、github.com/rustfs/GPUCache の main ブランチにあるファイルは README.md と LICENSE（Apache 2.0、Copyright RustFS, Inc.）の二つです。その README のロードマップ項目は、すべて未完了です。</p><p>V1 コアは別の pull request で開発中であり、main ブランチにはありません。本サイトが「実装済み」と書くのは、その項目が main に入った後だけです。</p></div>
+<div class="doc-block"><h2>main ブランチにあるもの</h2><p>main には CPU と TCP の契約があります。V1 A/B/C、V2 スライス（TCP、シャードローカルなディレクトリ、モックのコールド経路）、V3 スタブ（DPU のフィーチャーゲートと硬化フック）です。実行できるのはその CPU 契約です。BlueField-3、GDS、DPU のハードウェア経路、実 RDMA / NIXL の性能は開発中で、<code>NOT_RUN_HARDWARE</code> です。Soft-RoCE は機能スモークだけで、性能値ではありません。</p><p>イレイジャーコーディングはなく、ホット層の耐久レプリカもありません。G3.5 のミスまたはノード喪失はクリーンミスです。再計算し、書き戻します。冷データは G4 の RustFS が保持します。このページの図はハードウェア経路の設計目標のままです。<a href="/ja/docs/introduction/">紹介</a>と<a href="/ja/docs/usage/">使い方</a>を読んでください。</p></div>
 <div class="doc-block"><h2>三つの役割</h2><ul><li><strong>GPU</strong> 生成中に使う KV を持ち、戻す必要のある KV を取りにいきます。</li><li><strong>DPU</strong> Rust KV エンジンを動かし、フラッシュを管理します。BlueField-3 対応は開発中です。</li><li><strong>フラッシュ</strong> クラスタが再利用できる KV を置く共有 NVMe です。</li></ul></div>
 <div class="doc-block"><h2>データパス</h2><p>下の線は設計目標であり、今日動いている経路ではありません。最初に通すのは、ホストメモリを経由する経路です。</p><ol class="path" aria-label="設計目標のデータパス。開発中"><li><strong>GPU メモリ / ホストメモリ</strong></li><li class="via">RDMA / RoCEv2</li><li><strong>DPU</strong><span>Rust KV エンジン</span></li><li class="via">SPDK</li><li><strong>NVMe フラッシュ</strong></li></ol><p><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></p></div>
 <div class="doc-block"><h2>三段階、すべて開発中</h2><ol><li><strong>ホストメモリ経路</strong> KV はホスト DRAM と、DPU およびフラッシュの間を移動します。これが第一段階で通す基線です。</li><li><strong>一時置きの経路</strong> GPU メモリ上のデータを一度置き、それから DPU に渡します。過渡的な形であり、一時置きは観測できなければなりません。</li><li><strong>GDS 直通</strong> GPU メモリが DPU を経てフラッシュに届き、ホスト側の一時置きはありません。これが GPUCache の目標の形です。</li></ol><p>公開資料が「GDS 直通に対応」と書けるのは、実行時の証拠が取れてからです。直通の経路を実際に通り、フォールバックも黙った一時置きもなく、両端のバイトとチェックサムが一致すること。インターフェースや装置の種類だけでは、その証拠になりません。</p></div>
 <div class="doc-block"><h2>コンポーネント</h2><ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Rust KV エンジン <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>KV Cache 向けのストレージエンジン。Rust で書き、DPU の Arm コアで動かします。</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>RDMA / RoCEv2 転送 <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>計算ノードと G3.5 の間は RDMA で通信します。</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>SPDK によるフラッシュ管理 <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>DPU 上の SPDK で NVMe SSD に直接アクセスします。</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>NVIDIA DOCA と Arm クロスコンパイル <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>BlueField-3 上でビルドし、実行します。</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>推論フレームワークとの接続 <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>vLLM や TensorRT-LLM などの KV Cache インターフェースへ接続する予定です。PagedAttention のブロック粒度で管理します。</p></div></li></ol></div>
 <div class="doc-block"><h2>CPU の境界</h2><p>正確な言い方はこうです。ストレージ側に x86 のストレージホストは要らない。KV データのホットパスはホスト CPU が中継しない。計算ノードには、登録メモリ、リクエストの投入、完了イベントの受け取りという最小限の状態が残ります。</p></div>
 <div class="doc-block"><h2>失われたときの意味</h2><p>GPUCache は永続性を持ちません。G3.5 のノードが落ちるかデータが失われると、推論フレームワークが受け取るのは miss です。これまでどおりプレフィルをやり直し、GPUCache に書き戻し、次はヒットできます。</p><p>長く残すコンテキストと成果物は G4 の RustFS に置きます。RustFS が容量層、GPUCache がホット層です。</p></div>
-<div class="doc-block"><h2>向かない用途</h2><ul><li>永続して残すデータ。G3.5 はキャッシュです。永続データは G4 の RustFS に置きます。</li><li>学習のチェックポイント保管。それは G4 の仕事です。</li><li>今すぐ本番へ載せること。V1 はまだ開発中です。</li></ul></div></article>
+<div class="doc-block"><h2>向かない用途</h2><ul><li>永続して残すデータ。G3.5 はキャッシュです。永続データは G4 の RustFS に置きます。</li><li>学習のチェックポイント保管。それは G4 の仕事です。</li><li>今すぐ本番へ載せること。CPU 契約はソースから実行できます。ハードウェア経路は開発中で、このツリーは本番準備完了ではありません。</li></ul></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">ドキュメント</p>
-      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
+      <ul class="footer-links"><li><a href="/ja/docs/introduction/">紹介</a></li><li><a href="/ja/docs/usage/">使い方</a></li><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
     </div>
     <div>
       <p class="label">プロジェクト</p>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Usage | GPUCache</title>
+  <meta name="description" content="GPUCache usage: install from source, start the loopback TCP service, run demos, set quotas, and read clean-miss behavior. Hardware paths stay in development." />
+  <link rel="canonical" href="https://gpucache.com/docs/usage/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/usage/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/usage/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/usage/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/usage/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/usage/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/usage/" />
+  <meta property="og:title" content="Usage | GPUCache" />
+  <meta property="og:description" content="GPUCache usage: install from source, start the loopback TCP service, run demos, set quotas, and read clean-miss behavior. Hardware paths stay in development." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/docs/usage/" />
+  <meta property="og:locale" content="en_US" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="RustFS GPUCache home">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
+    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/introduction/">Introduction</a><a href="/docs/usage/" aria-current="page">Usage</a><a href="/docs/">Docs</a>
+    <ul class="lang-switch" aria-label="Language"><li><a href="/docs/usage/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/usage/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/usage/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/usage/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/usage/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Language"><li><a href="/docs/usage/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/usage/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/usage/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/usage/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/usage/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">Docs</p>
+      <nav aria-label="Docs"><a href="/docs/introduction/">Introduction</a><a href="/docs/usage/" aria-current="page">Usage</a><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/">Roadmap</a><a href="/docs/quickstart/">Quick start</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/docs/">Docs</a> <span aria-hidden="true">/</span> <span>Usage</span></p>
+<p class="label">Usage</p>
+<h1>Usage</h1>
+<p class="lede">These steps run the CPU and TCP contract from a clean checkout. They do not install a package, format a disk, or open a DPU. BlueField-3, GDS, the DPU hardware path, and real RDMA or NIXL performance stay in development.</p>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In development</span><p>There is no production deploy and no crates.io publish. Soft-RoCE is a functional smoke only, not a performance number. A G3.5 miss or a lost node is a clean miss: recompute, then write back. No erasure coding and no hot-tier durability replica. RustFS is the G4 cold tier.</p></div>
+<nav class="manual-toc" aria-label="On this page"><a href="#install">Install</a><a href="#start">Start</a><a href="#demo">Demos</a><a href="#config">Config</a><a href="#quotas">Quotas</a><a href="#failure">Misses</a><a href="#ops">Ops notes</a></nav>
+<div class="doc-block" id="install"><h2>Install</h2>
+<p>Rust stable is selected by <code>rust-toolchain.toml</code>. The declared MSRV is 1.85. There is no installable package. Clone the repository and run the CPU contract tests:</p>
+<pre data-copy="Copy" data-copied="Copied"><code>git clone https://github.com/rustfs/GPUCache.git
+cd GPUCache
+cargo test --workspace --all-targets</code></pre>
+<p><code>cargo test --workspace --all-targets</code> is the one-command CPU repro for V1 A, V1 B, and V1 C, and it also covers the V2 and V3 CPU tests that are in the tree. The bytes are synthetic. They are not a vLLM KV tensor, and the command is not a bandwidth result. CI also runs <code>cargo fmt --all -- --check</code> and <code>cargo clippy --workspace --all-targets -- -D warnings</code>.</p></div>
+<div class="doc-block" id="start"><h2>Start</h2>
+<p>The TCP service listens on loopback unless you opt in. The default bind is <code>127.0.0.1:9735</code>. A non-loopback address requires <code>--allow-remote</code>. That flag does not turn authentication off. The process still requires a tenant credential fingerprint: 32 bytes, hex-encoded, not all zeros. Pass the hash, not a live secret. There is no unauthenticated data path.</p>
+<pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-transport --bin gpucache-tcp -- serve --data-dir /tmp/gpucache-dev --tenant tenant-a --trust td-local --fingerprint &lt;64 hex chars of a credential hash&gt;</code></pre>
+<p><code>--data-dir</code> is a directory of ordinary files (<code>MANIFEST</code>, <code>LRU</code>, and <code>blocks/*.gblk</code>). Do not point it at a device node. The process does not format NVMe, change a NIC, or touch a DPU. There is no on-disk config file. Flags are the schema. This example is a development loopback only.</p></div>
+<div class="doc-block" id="demo"><h2>Demos</h2>
+<p>Each banner is a correctness check. None of them is a performance number. BlueField-3, GDS, and live RDMA stay <code>NOT_RUN_HARDWARE</code>.</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th scope="col">Command</th><th scope="col">Success banner</th><th scope="col">What it is</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>cargo run -p gpucache-transport --bin share-demo</code></th><td><code>status=REUSE_OK</code> and <code>partial_prefix=WHOLE_BLOCK_PREFIX</code></td><td>Two localhost clients share one file-backed service. The longer chain reuses the whole shorter block. A shorter <code>valid_length</code> is not sliced out. <code>intra_block_slice=DEGRADED_MISS</code>.</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-transport --bin fault-demo</code></th><td><code>status=FALLBACK_OK</code>, <code>criteria=EXACT_TOKEN_IDS</code>, <code>tolerance=NONE</code></td><td>Hit, miss, corrupt file, deadline, cancel, and quota refusal fail closed. The caller recomputes. A wrong tenant or wrong model is not a hit. Not a vLLM run.</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-transport --bin shard-demo</code></th><td><code>status=SHARD_OK</code>, <code>registration=SIMULATED</code>, <code>rdma=NOT_RUN_HARDWARE</code></td><td>One shard, epoch fencing, quarantine across lease expiry, and a TCP host copy. Not a NIC registration.</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-cold --bin cold-demo</code></th><td><code>status=COLD_CONTRACT_OK</code> and <code>gds=NOT_RUN_HARDWARE</code></td><td>Mock G4 pack, sink, and budget-capped refill. <code>rustfs_live=NOT_RUN_HARDWARE</code> when no endpoint is configured.</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-dpu --bin dpu-demo</code></th><td><code>status=DPU_CONTRACT_OK</code>, <code>offload_active=false</code>, <code>hardware=NOT_RUN_HARDWARE</code>, <code>doca=NOT_LINKED</code></td><td>In-process DPU contract. It does not open a device. Arm process start is not an offload.</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-bench --bin paired-baseline</code></th><td><code>NOT_RUN_HARDWARE</code>, no timings</td><td>Paired GPU baselines are not run. The tool prints no sample count, no TTFT, and no tokens/s.</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-bench --bin v3-paired</code></th><td><code>TCO_UNKNOWN</code> and <code>go_gate=NOT_EVALUATED</code></td><td>Names a NIC-RDMA versus DPU comparison and does not measure it. TCP is not that baseline.</td></tr>
+<tr><th scope="row"><code>cargo test -p gpucache-dpu --all-targets --features dpu-bf3</code></th><td>Tests pass, opens refuse</td><td>Optional feature slot. It does not link DOCA, SPDK, or NVMe.</td></tr>
+<tr><th scope="row"><code>cargo test -p gpucache-transport --all-targets --features rdma-nixl</code></th><td><code>NixlTransport::open</code> refuses</td><td>Does not link libnixl. Soft-RoCE is a functional smoke only, not a performance number.</td></tr>
+</tbody>
+</table></div>
+<p><code>kv-block-xfer</code> reads one <code>GEXP</code> frame on stdin and imports it into a fresh <code>MemoryStore</code>. It prints <code>status=IMPORTED</code> only after lookup and get succeed. A checksum failure exits 2. It does not talk to an engine.</p>
+<pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-storage --bin kv-block-xfer -- import &lt;64 hex chars of a credential hash&gt;</code></pre></div>
+<div class="doc-block" id="config"><h2>Config</h2>
+<p>There is no config file. The binary flags and <code>ResourceLimits::dev_defaults()</code> are the schema.</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th scope="col">Field</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>bind</code></th><td><code>127.0.0.1:9735</code></td><td>Socket. Non-loopback needs <code>allow_remote</code>. Tests use port 0.</td></tr>
+<tr><th scope="row"><code>data_dir</code></th><td>Required</td><td>Directory of ordinary files. Not a device node.</td></tr>
+<tr><th scope="row"><code>tenant</code>, <code>trust</code>, <code>fingerprint</code></th><td>Required</td><td>One V1 policy. Fingerprint is 32 bytes, not all zero.</td></tr>
+<tr><th scope="row"><code>allow_remote</code></th><td><code>false</code></td><td>Does not disable auth.</td></tr>
+<tr><th scope="row"><code>max_connections</code></th><td>16</td><td>Extra connections are dropped.</td></tr>
+<tr><th scope="row"><code>max_frame_bytes</code></th><td>1 MiB in the library, 2 MiB in the binary</td><td>Body cap. Larger declared lengths are rejected before read.</td></tr>
+<tr><th scope="row"><code>pool_buffers</code></th><td>16</td><td>Read-buffer pool. Checkout fails at the cap.</td></tr>
+<tr><th scope="row"><code>io_timeout</code></th><td>5 s</td><td>Read and write timeout on each connection.</td></tr>
+</tbody>
+</table></div>
+<p>Leave <code>GPUCACHE_RUSTFS_ENDPOINT</code>, <code>GPUCACHE_RUSTFS_BUCKET</code>, <code>GPUCACHE_RUSTFS_PREFIX</code>, <code>GPUCACHE_RUSTFS_ACCESS_KEY</code>, and <code>GPUCACHE_RUSTFS_SECRET_KEY</code> unset unless an operator has authorized a test bucket. Unset means <code>NOT_RUN_HARDWARE</code>. Do not invent credentials. <code>https://</code> is <code>NOT_RUN_HARDWARE</code> in this milestone because no TLS stack is linked.</p></div>
+<div class="doc-block" id="quotas"><h2>Quotas</h2>
+<p><code>ResourceLimits</code> bounds object size, in-flight requests, registrations (including committed and quarantined buffers), per-tenant in-flight bytes, global retained bytes, and per-tenant retained bytes. The idempotency table is capped and entries expire.</p>
+<p><code>MemoryStore</code> refuses admission instead of evicting. <code>FileStore</code> evicts the oldest unpinned committed block when a retained-byte quota would fail. It does not evict another tenant to satisfy a tenant quota, and it does not evict a pinned or quarantined block. <code>Invalidate</code> is the explicit client path.</p>
+<p>Shard credits, the simulated slab cap, cold retention, and the backfill byte budget are admission ceilings for recomputable KV. They are not a measured cluster size. Do not size the hot tier as the only copy of user data.</p></div>
+<div class="doc-block" id="failure"><h2>Failure and miss semantics</h2>
+<p>GPUCache is the G3.5 shared hot tier. RustFS is the G4 cold tier. On a G3.5 miss or node loss the result is a clean miss, then recompute, then write back. There is no erasure coding and no hot-tier durability replica.</p>
+<ul>
+<li>A hit is only a <code>COMMITTED</code> block with a compatible identity and a checksum that still matches.</li>
+<li><code>ABSENT</code>, <code>RESERVED</code>, <code>WRITING</code>, <code>EVICTING</code>, and <code>QUARANTINED</code> return no payload.</li>
+<li>Miss, timeout, checksum failure, version mismatch, store outage, over-budget refill, fenced epoch, corrupt or truncated file, and transport error are recomputes. None of them is a successful hit.</li>
+<li>A wrong tenant, model, tokenizer, adapter, or layout is not a hit. A wrong hit is a failure.</li>
+<li>A shorter <code>valid_length</code> on the same hash chain is an incompatible miss. The service does not slice inside a block.</li>
+<li>Lease expiry does not prove that a copy has stopped. A quarantined region stays until drain attestation or a newer fenced epoch.</li>
+<li>Restart reloads committed files, bumps the epoch, and drops in-flight reservations.</li>
+<li>The degrade decisions for DPU restart, GPU reset, NIC flap, storage loss, NVMe timeout, control-plane loss, and RustFS slow or down are clean misses. That table is not a hardware fault injection. No payload, no wrong hit, no permanent block.</li>
+</ul>
+<p>The engine may write the recomputed block back through the same batch API. The hot tier does not repair the lost block by itself.</p></div>
+<div class="doc-block" id="ops"><h2>Ops notes</h2>
+<p><code>dpu-demo</code> is the diagnostics sketch. It prints whether <code>dpu-bf3</code> was selected, that DOCA, SPDK, and NVMe are not linked, that hot-tier erasure coding is off, and that each planned target is <code>NOT_RUN_HARDWARE</code>. It does not print payloads, fingerprints, or prompts. There is no device health counter because no device is open.</p>
+<p><code>ControlPlane::begin_upgrade</code> stops new fills. In-flight fills can still complete. <code>rollback</code> before finish returns to serving without a fence. <code>finish_upgrade</code> bumps a software generation and fences, so old epochs miss and the engine recomputes. <code>rollback</code> after finish fences again. The generation counter does not decrease. No BlueField firmware, BFB, or DOCA package is part of this rollback. The TCP wire format is unchanged apart from quota kind byte 8 (<code>RateLimit</code>) on error replies.</p>
+<p>Rebalance fences the source and returns an empty destination directory. Fault-domain isolation removes members in that domain and refuses to remove the last member. None of these copy payload bytes.</p>
+<p>Not operated from this tree: no NVMe format, no DPU mode change, no firmware, no IOMMU or BIOS change, no production network change. G4 live calls stay env-gated. Soft-RoCE, if anyone later smokes it, is a functional smoke only and is not a performance number.</p>
+<p>Position and the tier split are in the <a href="/docs/introduction/">introduction</a>. Upstream detail: <a href="https://github.com/rustfs/GPUCache/blob/main/docs/OPERATIONS.md" target="_blank" rel="noopener noreferrer">OPERATIONS.md</a> and <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README.md</a>.</p></div>
+</article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS is a trademark of RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Docs</p>
+      <ul class="footer-links"><li><a href="/docs/introduction/">Introduction</a></li><li><a href="/docs/usage/">Usage</a></li><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Project</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 license</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Language"><li><a href="/docs/usage/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/usage/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/usage/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/usage/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/usage/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

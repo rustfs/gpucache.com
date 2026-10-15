@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Einführung | GPUCache</title>
+  <meta name="description" content="Einführung in GPUCache: gemeinsame KV-Hot-Schicht auf G3.5, RustFS auf G4, der CPU- und TCP-Vertrag, der läuft. BlueField-3, GDS und DPU-Hardware sind in Entwicklung." />
+  <link rel="canonical" href="https://gpucache.com/de/docs/introduction/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/introduction/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/introduction/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/introduction/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/introduction/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/introduction/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/introduction/" />
+  <meta property="og:title" content="Einführung | GPUCache" />
+  <meta property="og:description" content="Einführung in GPUCache: gemeinsame KV-Hot-Schicht auf G3.5, RustFS auf G4, der CPU- und TCP-Vertrag, der läuft. BlueField-3, GDS und DPU-Hardware sind in Entwicklung." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/de/docs/introduction/" />
+  <meta property="og:locale" content="de_DE" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Zum Inhalt</a>
+<header class="site-header">
+  <a class="brand" href="/de/" aria-label="RustFS GPUCache Startseite">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menü</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Abschnitte">
+    <a href="/de/#problem">Problem</a><a href="/de/#approach">Ansatz</a><a href="/de/#architecture">Architektur</a><a href="/de/#roadmap">Roadmap</a><a href="/de/#rustfs">RustFS</a><a href="/de/#quickstart">Schnellstart</a><a href="/de/docs/introduction/" aria-current="page">Einführung</a><a href="/de/docs/usage/">Nutzung</a><a href="/de/docs/">Dokumentation</a>
+    <ul class="lang-switch" aria-label="Sprache"><li><a href="/docs/introduction/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/introduction/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/introduction/" hreflang="de" lang="de" aria-current="page" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/introduction/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/introduction/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Sprache"><li><a href="/docs/introduction/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/introduction/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/introduction/" hreflang="de" lang="de" aria-current="page" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/introduction/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/introduction/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">Dokumentation</p>
+      <nav aria-label="Dokumentation"><a href="/de/docs/introduction/" aria-current="page">Einführung</a><a href="/de/docs/usage/">Nutzung</a><a href="/de/docs/architecture/">Architektur</a><a href="/de/docs/tiering/">Schichten</a><a href="/de/docs/roadmap/">Roadmap</a><a href="/de/docs/quickstart/">Schnellstart</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/de/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/de/docs/">Dokumentation</a> <span aria-hidden="true">/</span> <span>Einführung</span></p>
+<p class="label">Einführung</p>
+<h1>Einführung</h1>
+<p class="lede">GPUCache ist die gemeinsame KV-Hot-Schicht auf G3.5. RustFS ist die kältere Kapazitätsschicht auf G4. Ausführbar ist in diesem Baum der CPU- und TCP-Vertrag. BlueField-3, GDS, der DPU-Hardwarepfad und echte RDMA- oder NIXL-Leistung sind in Entwicklung.</p>
+<div class="callout"><span class="status status-done"><i aria-hidden="true"></i>Umgesetzt</span><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span><p>V1 A/B/C und die V2-CPU-Scheibe liegen auf main. V3 ist ein DPU-Feature-Gate und Stubs zur Härtung. Hardwarepfade drucken <code>NOT_RUN_HARDWARE</code>. Soft-RoCE ist nur ein funktionaler Smoke-Test, keine Leistungszahl.</p></div>
+<nav class="manual-toc" aria-label="Auf dieser Seite"><a href="#position">Position</a><a href="#status">Was läuft</a><a href="#architecture">Architektur</a><a href="#tiering">G3.5 und G4</a><a href="#protocol">Ein Protokoll</a></nav>
+<div class="doc-block" id="position"><h2>Produktposition</h2>
+<p>GPUCache ist eine offene, gemeinsame KV-Cache-Schicht für disaggregierte Inferenz. In der NVIDIA-CMX-Terminologie ist das G3.5: ein gemeinsamer Cache vor dem GPU-HBM, wiederverwendet von Anfragen mit demselben Tenant, demselben Modell und demselben Layout. <a href="https://github.com/rustfs/rustfs" target="_blank" rel="noopener noreferrer">RustFS</a> ist das G4-Kapazitäts-Backend. G4 liegt nicht auf dem heißen Pfad von Prefill zu Decode.</p>
+<p>Ein KV-Block ist neu berechenbarer Beschleunigerzustand. Er ist nicht die einzige Kopie eines Prompts und kein modellunabhängiges Langzeitgedächtnis. Tokenisierung, Attention und Scheduling bleiben beim Inferenz-Engine. Dieses Repository ersetzt sie nicht.</p>
+<p>Ein Fehltreffer, ein Timeout, ein Prüfsummenfehler, eine Versionsabweichung oder ein Speicherausfall gehen an die Engine zurück. Die Engine berechnet neu und kann den Block zurückschreiben. Ein falscher Treffer ist ein Fehler. Es gibt kein installierbares Paket, kein Produktions-Deploy und keine gemessene Clustergröße. Beschreiben Sie diesen Baum nicht als PB-Scale oder produktionsreif.</p>
+<p>Die Lizenz ist Apache 2.0. Die öffentliche Formulierung folgt der <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README auf main</a> und den Dokumenten daneben.</p></div>
+<div class="doc-block" id="status"><h2>Was läuft, und was in Entwicklung ist</h2>
+<p>Der Default-Build ist CPU und TCP. Er linkt weder DOCA, CUDA, RDMA, NIXL noch SPDK. Ein aarch64-Build ist ein CPU-Build, kein BlueField-Funktionstest. Das Feature <code>rdma-nixl</code> linkt libnixl nicht. Das Feature <code>dpu-bf3</code> linkt kein Gerät. <code>NixlTransport::open</code>, <code>open_doca</code>, <code>open_nvme_device</code> und <code>open_spdk</code> lehnen ab.</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th scope="col">Punkt</th><th scope="col">Status</th><th scope="col">Bedeutung</th></tr></thead>
+<tbody>
+<tr><th scope="row">V1-A/B/C-CPU-Vertrag</th><td><span class="status status-done"><i aria-hidden="true"></i>Umgesetzt</span></td><td>Identität, Protokoll, <code>MemoryStore</code>, TCP-Dienst, Datei-Backend, LRU-Aufnahme, Tenant-Quoten, Fuzz- und Fehlertests. Die Bytes sind synthetisch. Ein echter vLLM-KV-Export ist <code>NOT_RUN_HARDWARE</code>.</td></tr>
+<tr><th scope="row">V2: TCP, Shard-Verzeichnis, Kaltpfad</th><td><span class="status status-done"><i aria-hidden="true"></i>Umgesetzt</span></td><td>TCP ist der Default-Transport. Registrierung ist ein simulierter Pool, keine NIC. Ein Prozess ist ein Shard. Pack und Refill auf G4 laufen gegen einen Mock. Live-RustFS ist <code>NOT_RUN_HARDWARE</code>, solange niemand <code>GPUCACHE_RUSTFS_*</code> setzt.</td></tr>
+<tr><th scope="row">V3: DPU-Gate und Härtungs-Stubs</th><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>CPU-seitige Authz-, Replay-, Quota- und Cold-Ops-Hooks liegen im Baum. Rebalance und Rolling Upgrade zäunen Fills ein. Sie kopieren kein Replikat. Geräte sind nicht gelinkt. <code>dpu-demo</code> druckt <code>NOT_RUN_HARDWARE</code>.</td></tr>
+<tr><th scope="row">BlueField-3, GDS, DPU-Hardwarepfad</th><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>Immer in Entwicklung. Nicht umgesetzt, nicht ausgerollt und kein gemessener Produktionspfad.</td></tr>
+<tr><th scope="row">Echte RDMA- / NIXL-Leistung</th><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>Live-RDMA ist <code>NOT_RUN_HARDWARE</code>. Gepaarte TTFT-, TPOT- und TCO-Werte werden nicht veröffentlicht. <code>tco=TCO_UNKNOWN</code>. <code>go_gate=NOT_EVALUATED</code>. TCP ist nicht die DPU-Baseline.</td></tr>
+<tr><th scope="row">Soft-RoCE</th><td>Nur Smoke</td><td>Soft-RoCE ist nur ein funktionaler Smoke-Test. Es ist keine Leistungszahl, und diese Site veröffentlicht keine.</td></tr>
+<tr><th scope="row">Engine-Anbindung</th><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>Der Weg ist nicht gewählt: nativer vLLM-KV-Connector oder LMCache. Eine zweite Engine ist nicht enthalten.</td></tr>
+<tr><th scope="row">Erasure Coding und Hot-Tier-Replikate</th><td>Nicht in diesem Produkt</td><td>Wird nicht gebaut. Erasure Coding auf der heißen Schicht lässt sich nicht einschalten. Ein verlorener heißer Block ist ein sauberer Fehltreffer.</td></tr>
+</tbody>
+</table></div>
+<p class="footnote">Befehle, Banner und die Grenze jeder Demo stehen in der <a href="/de/docs/usage/">Nutzung</a>.</p></div>
+<div class="doc-block" id="architecture"><h2>Architektur</h2>
+<p>Die Zeichnung auf der Startseite ist das Zielbild eines DPU-Pfads. Dieser Baum hat diesen Pfad nicht ausgeführt. Was läuft, sieht so aus:</p>
+<pre data-copy="Kopieren" data-copied="Kopiert"><code>engine (not in this tree; NOT_RUN_HARDWARE)
+        |  CacheIdentity + batch API
+        v
+gpucache-transport    TCP, loopback by default
+        v
+FileStore             ordinary files in a directory you pass
+        v
+MemoryStore           in-process contract
+gpucache-cold         optional G4 mock. Not on the TCP hot path.
+gpucache-dpu          simulated queue. Not on the TCP hot path.</code></pre>
+<ul>
+<li><code>gpucache-core-types</code> hält versionierte <code>CacheIdentity</code>, längenbegrenzte logische und physische Schlüssel, den Block-Lebenszyklus, Prüfsummen, Quoten und Fehler.</li>
+<li><code>gpucache-protocol</code> hält Batch-Nachrichten, Fristen, den Tenant-Auth-Kontext und die Verhandlung der Wire-Version.</li>
+<li><code>gpucache-storage</code> hält <code>MemoryStore</code>, <code>FileStore</code> und <code>kv-block-xfer</code>. <code>FileStore</code> formatiert keine Platte und öffnet keinen Geräteknoten.</li>
+<li><code>gpucache-transport</code> ist der TCP-Korrektheitspfad plus simulierter Registrierungspool und Shard-lokales Verzeichnis.</li>
+<li><code>gpucache-cold</code> packt ein Manifest und kann Put, Head, RangeGet und Delete über ein Trait. Transport hängt nicht davon ab.</li>
+<li><code>gpucache-dpu</code> ist der BlueField-Feature-Slot. Der heiße Pfad ruft ihn nicht auf.</li>
+<li><code>gpucache-bench</code> benennt gepaarte Baselines und druckt <code>NOT_RUN_HARDWARE</code>. Es darf keine Zeiten erfinden.</li>
+</ul>
+<p>Ein Treffer ist nur ein <code>COMMITTED</code>-Block mit kompatibler Identität, dessen gespeicherte Prüfsumme noch zu den Bytes passt. <code>ABSENT</code>, <code>RESERVED</code>, <code>WRITING</code>, <code>EVICTING</code> und <code>QUARANTINED</code> sind nicht lesbar.</p>
+<pre data-copy="Kopieren" data-copied="Kopiert"><code>ABSENT -&gt; RESERVED -&gt; WRITING -&gt; COMMITTED -&gt; EVICTING -&gt; ABSENT
+                 \-&gt; QUARANTINED -&gt; ABSENT</code></pre>
+<p>Eine fehlgeschlagene oder abgelaufene registrierte Region geht nach <code>QUARANTINED</code>. Ablauf der Lease gibt sie nicht frei. Rückgewinnung braucht eine autorisierte Drain-Bestätigung oder eine neuere Epoche, die die Region einzäunt. Eine längere Hash-Kette kann <code>PrefixHit</code> für einen ganzen kürzeren committeten Block liefern, wenn Layout und die anderen bytewirksamen Felder passen. Der Dienst schneidet nicht innerhalb eines Blocks. Eine kürzere <code>valid_length</code> auf derselben Kette ist ein inkompatibler Fehltreffer.</p>
+<p>Rohe Prompts, Token-IDs und Medienbytes sind keine Identitätsfelder. Aufrufer hashen sie außerhalb des Speichers. Dieselben Token bedeuten nicht dieselben Bytes: logischer Präfixschlüssel und physischer Byte-Schlüssel sind verschiedene Kodierungen. Wiederverwendung bleibt in einem Tenant, einem Modell und einem Layout. Reshard, Quantisierung oder Layout-Abweichung ist ein Fehltreffer. Es gibt keine Deduplizierung über Tenants hinweg.</p></div>
+<div class="doc-block" id="tiering"><h2>G3.5 und G4</h2>
+<p>GPUCache auf G3.5 ist die gemeinsame heiße Schicht. RustFS auf G4 ist die kalte Kapazitätsschicht. Die heiße Schicht repariert verlorene Blöcke nicht. Es gibt kein Erasure Coding und kein Haltbarkeitsreplikat auf der heißen Schicht. Verlust, Beschädigung, ein kurzer Schreibvorgang, eine volle Platte, Eviction und eine fehlgeschlagene Prüfung sind ein sauberer Fehltreffer. Die Engine berechnet neu und kann den Block zurückschreiben.</p>
+<p>Schlägt der Schreibvorgang auf die Platte nach dem Commit im Speicher fehl, wird dieser Commit aufgegeben und die Request-ID vergessen. Ein Replay kann dann keinen Erfolg für Bytes melden, die nicht gespeichert wurden. Eine zusätzliche Kopie eines heißen gemeinsamen Präfixes, falls sie jemals kommt, wäre ein Latenzhinweis. Sie ist nicht in diesem Baum und wäre kein Haltbarkeitsversprechen.</p>
+<p>Kalte Haltbarkeit ist die Aufgabe von RustFS. Der TCP-Dienst ruft die Cold-Crate nicht auf. Ein Refill über Budget oder ein langsames oder ausgefallenes RustFS liefert keine Nutzdaten. Das Ergebnis ist eine Neuberechnung, kein Treffer. <code>https://</code> zu einem Live-Bucket ist hier <code>NOT_RUN_HARDWARE</code>, weil kein TLS-Stack gelinkt ist. Lassen Sie <code>GPUCACHE_RUSTFS_*</code> ungesetzt, solange kein Operator einen Test-Bucket freigegeben hat.</p></div>
+<div class="doc-block" id="protocol"><h2>Ein Protokoll, vom einzelnen Knoten zur verteilten Schicht</h2>
+<p>Die Batch-API ist auf jedem ausführbaren Pfad dieselbe: Lookup, Reserve/Put, Commit, Get, Release/Cancel und Invalidate. Jeder Eintrag trägt <code>request_id</code>, Epoche und Frist, und wo es gilt Generation, Länge und Prüfsumme.</p>
+<p><code>MemoryStore</code> ist der prozessinterne, einzelthreadige Vertrag. Der TCP-Dienst bietet dieselbe API. Shard 0 ist der Einzelknotenfall und nutzt dieselben <code>ShardDirectory</code>-Methoden wie jeder andere Shard. Ein Prozess ist ein Shard. Es gibt kein zentrales Verzeichnis pro Token und kein Quorum pro Block. Eine Mitgliedschaftsänderung hebt die Epoche an, verwirft laufende Fills und gibt Credits frei. Teilnehmer eines Single-Flight reservieren keinen zweiten Credit und erhalten keine Nutzdaten aus dem Verzeichnis.</p>
+<p>Das ist der ganze Schritt von einem Knoten zu einer verteilten Schicht in diesem Baum: dasselbe Protokoll, dieselben Verzeichnis-Methoden, weiter ein Shard pro Prozess. Verteilung über Shards ist kein zweites Wire-Protokoll und kein laufendes Quorum. Ein Client, der weiter mit einem gestoppten Listener spricht, bekommt einen Transportfehler und muss neu berechnen. Er behält keinen veralteten Treffer.</p>
+<p>Installation, Start, Demos, Konfiguration, Quoten und Betrieb stehen in der <a href="/de/docs/usage/">Nutzung</a>. Das Zielbild bleibt unter <a href="/de/docs/architecture/">Architektur</a>. Die Schichtnamen bleiben unter <a href="/de/docs/tiering/">Schichten</a>.</p></div>
+</article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/de/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS ist eine Marke von RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Dokumentation</p>
+      <ul class="footer-links"><li><a href="/de/docs/introduction/">Einführung</a></li><li><a href="/de/docs/usage/">Nutzung</a></li><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Schichten</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Projekt</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache-2.0-Lizenz</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Sprache"><li><a href="/docs/introduction/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/introduction/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/introduction/" hreflang="de" lang="de" aria-current="page" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/introduction/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/introduction/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

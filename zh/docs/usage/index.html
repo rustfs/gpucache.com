@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>使用手册｜GPUCache</title>
+  <meta name="description" content="GPUCache 使用手册：从源码安装，启动环回 TCP，运行演示，配置配额，以及干净未命中。硬件路径仍为开发中。" />
+  <link rel="canonical" href="https://gpucache.com/zh/docs/usage/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/usage/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/usage/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/usage/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/usage/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/usage/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/usage/" />
+  <meta property="og:title" content="使用手册｜GPUCache" />
+  <meta property="og:description" content="GPUCache 使用手册：从源码安装，启动环回 TCP，运行演示，配置配额，以及干净未命中。硬件路径仍为开发中。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/zh/docs/usage/" />
+  <meta property="og:locale" content="zh_CN" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">跳到正文</a>
+<header class="site-header">
+  <a class="brand" href="/zh/" aria-label="RustFS GPUCache 首页">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">菜单</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="页面区块">
+    <a href="/zh/#problem">问题</a><a href="/zh/#approach">方案</a><a href="/zh/#architecture">架构</a><a href="/zh/#roadmap">路线图</a><a href="/zh/#rustfs">与 RustFS</a><a href="/zh/#quickstart">快速开始</a><a href="/zh/docs/introduction/">介绍</a><a href="/zh/docs/usage/" aria-current="page">使用</a><a href="/zh/docs/">文档</a>
+    <ul class="lang-switch" aria-label="语言"><li><a href="/docs/usage/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/usage/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/usage/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/usage/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/usage/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="语言"><li><a href="/docs/usage/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/usage/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/usage/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/usage/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/usage/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">文档</p>
+      <nav aria-label="文档"><a href="/zh/docs/introduction/">介绍</a><a href="/zh/docs/usage/" aria-current="page">使用</a><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/">分层</a><a href="/zh/docs/roadmap/">路线图</a><a href="/zh/docs/quickstart/">快速开始</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/zh/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/zh/docs/">文档</a> <span aria-hidden="true">/</span> <span>使用手册</span></p>
+<p class="label">使用手册</p>
+<h1>使用手册</h1>
+<p class="lede">下面的步骤在一份干净检出上跑 CPU/TCP 契约。它们不安装软件包，不格式化磁盘，也不打开 DPU。BlueField-3、GDS、DPU 硬件路径，以及真实的 RDMA/NIXL 性能，仍然是「开发中」。</p>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>开发中</span><p>没有生产部署，也没有 crates.io 发布。Soft-RoCE 只做功能冒烟，不是性能数字。G3.5 未命中或节点丢失是一次干净的未命中：重算，再写回。没有纠删码，热层也没有持久副本。RustFS 是 G4 冷层。</p></div>
+<nav class="manual-toc" aria-label="本页目录"><a href="#install">安装</a><a href="#start">启动</a><a href="#demo">演示</a><a href="#config">配置</a><a href="#quotas">配额</a><a href="#failure">未命中</a><a href="#ops">运维说明</a></nav>
+<div class="doc-block" id="install"><h2>安装</h2>
+<p><code>rust-toolchain.toml</code> 选择 Rust stable。声明的 MSRV 是 1.85。没有可安装的包。克隆仓库，然后跑 CPU 契约测试：</p>
+<pre data-copy="复制" data-copied="已复制"><code>git clone https://github.com/rustfs/GPUCache.git
+cd GPUCache
+cargo test --workspace --all-targets</code></pre>
+<p><code>cargo test --workspace --all-targets</code> 是 V1 A、V1 B 和 V1 C 的一条命令 CPU 复现，也覆盖树里已有的 V2 和 V3 CPU 测试。字节是合成的。它们不是 vLLM KV 张量，这条命令也不是带宽结果。CI 还会跑 <code>cargo fmt --all -- --check</code> 和 <code>cargo clippy --workspace --all-targets -- -D warnings</code>。</p></div>
+<div class="doc-block" id="start"><h2>启动</h2>
+<p>除非你明确放开，TCP 服务只听环回。默认绑定是 <code>127.0.0.1:9735</code>。非环回地址需要 <code>--allow-remote</code>。这个标志不关闭认证。进程仍然要求租户凭据指纹：32 字节，十六进制，不能全零。传入哈希，不要传入活的密钥。没有不认证的数据路径。</p>
+<pre data-copy="复制" data-copied="已复制"><code>cargo run -p gpucache-transport --bin gpucache-tcp -- serve --data-dir /tmp/gpucache-dev --tenant tenant-a --trust td-local --fingerprint &lt;64 hex chars of a credential hash&gt;</code></pre>
+<p><code>--data-dir</code> 是普通文件目录（<code>MANIFEST</code>、<code>LRU</code> 和 <code>blocks/*.gblk</code>）。不要把它指到设备节点。进程不格式化 NVMe，不改网卡，也不碰 DPU。没有磁盘上的配置文件。标志就是配置模式。这个例子只是开发用的环回。</p></div>
+<div class="doc-block" id="demo"><h2>演示</h2>
+<p>每条成功横幅都是正确性检查。它们都不是性能数字。BlueField-3、GDS 和在线 RDMA 保持 <code>NOT_RUN_HARDWARE</code>。</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th scope="col">命令</th><th scope="col">成功横幅</th><th scope="col">它是什么</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>cargo run -p gpucache-transport --bin share-demo</code></th><td><code>status=REUSE_OK</code> 和 <code>partial_prefix=WHOLE_BLOCK_PREFIX</code></td><td>两个本机客户端共用一个文件后端服务。更长的链复用整块更短的 block。更短的 <code>valid_length</code> 不会被切出来。<code>intra_block_slice=DEGRADED_MISS</code>。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-transport --bin fault-demo</code></th><td><code>status=FALLBACK_OK</code>、<code>criteria=EXACT_TOKEN_IDS</code>、<code>tolerance=NONE</code></td><td>命中、未命中、损坏文件、截止时间、取消和配额拒绝都失败关闭。调用方重算。错误的租户或错误的模型不是命中。不是 vLLM 运行。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-transport --bin shard-demo</code></th><td><code>status=SHARD_OK</code>、<code>registration=SIMULATED</code>、<code>rdma=NOT_RUN_HARDWARE</code></td><td>一个分片、epoch 隔离、租约到期后的隔离，以及一次 TCP 主机拷贝。不是网卡注册。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-cold --bin cold-demo</code></th><td><code>status=COLD_CONTRACT_OK</code> 和 <code>gds=NOT_RUN_HARDWARE</code></td><td>G4 的 mock 打包、下沉和按预算截断的回填。没有配置端点时 <code>rustfs_live=NOT_RUN_HARDWARE</code>。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-dpu --bin dpu-demo</code></th><td><code>status=DPU_CONTRACT_OK</code>、<code>offload_active=false</code>、<code>hardware=NOT_RUN_HARDWARE</code>、<code>doca=NOT_LINKED</code></td><td>进程内的 DPU 契约。它不打开设备。Arm 进程启动不是卸载。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-bench --bin paired-baseline</code></th><td><code>NOT_RUN_HARDWARE</code>，没有时延数字</td><td>成对的 GPU 基线没有跑。工具不打印样本数、TTFT 或 tokens/s。</td></tr>
+<tr><th scope="row"><code>cargo run -p gpucache-bench --bin v3-paired</code></th><td><code>TCO_UNKNOWN</code> 和 <code>go_gate=NOT_EVALUATED</code></td><td>点名 NIC RDMA 与 DPU 的对照，但不测量。TCP 不是那条基线。</td></tr>
+<tr><th scope="row"><code>cargo test -p gpucache-dpu --all-targets --features dpu-bf3</code></th><td>测试通过，打开被拒绝</td><td>可选特性槽。不链接 DOCA、SPDK 或 NVMe。</td></tr>
+<tr><th scope="row"><code>cargo test -p gpucache-transport --all-targets --features rdma-nixl</code></th><td><code>NixlTransport::open</code> 拒绝</td><td>不链接 libnixl。Soft-RoCE 只做功能冒烟，不是性能数字。</td></tr>
+</tbody>
+</table></div>
+<p><code>kv-block-xfer</code> 从标准输入读一帧 <code>GEXP</code>，导入一个新的 <code>MemoryStore</code>。只有 lookup 和 get 都成功才打印 <code>status=IMPORTED</code>。校验失败以退出码 2 结束。它不连接引擎。</p>
+<pre data-copy="复制" data-copied="已复制"><code>cargo run -p gpucache-storage --bin kv-block-xfer -- import &lt;64 hex chars of a credential hash&gt;</code></pre></div>
+<div class="doc-block" id="config"><h2>配置</h2>
+<p>没有配置文件。二进制标志和 <code>ResourceLimits::dev_defaults()</code> 就是模式。</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th scope="col">字段</th><th scope="col">默认</th><th scope="col">含义</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>bind</code></th><td><code>127.0.0.1:9735</code></td><td>套接字。非环回需要 <code>allow_remote</code>。测试使用端口 0。</td></tr>
+<tr><th scope="row"><code>data_dir</code></th><td>必填</td><td>普通文件目录。不是设备节点。</td></tr>
+<tr><th scope="row"><code>tenant</code>、<code>trust</code>、<code>fingerprint</code></th><td>必填</td><td>一条 V1 策略。指纹是 32 字节，不能全零。</td></tr>
+<tr><th scope="row"><code>allow_remote</code></th><td><code>false</code></td><td>不关闭认证。</td></tr>
+<tr><th scope="row"><code>max_connections</code></th><td>16</td><td>超出的连接被丢弃。</td></tr>
+<tr><th scope="row"><code>max_frame_bytes</code></th><td>库内 1 MiB，二进制 2 MiB</td><td>正文上限。声明更大的长度会在读取前被拒绝。</td></tr>
+<tr><th scope="row"><code>pool_buffers</code></th><td>16</td><td>读缓冲池。达到上限时取出失败。</td></tr>
+<tr><th scope="row"><code>io_timeout</code></th><td>5 s</td><td>每条连接的读写超时。</td></tr>
+</tbody>
+</table></div>
+<p>除非操作者已经授权测试桶，否则不要设置 <code>GPUCACHE_RUSTFS_ENDPOINT</code>、<code>GPUCACHE_RUSTFS_BUCKET</code>、<code>GPUCACHE_RUSTFS_PREFIX</code>、<code>GPUCACHE_RUSTFS_ACCESS_KEY</code> 和 <code>GPUCACHE_RUSTFS_SECRET_KEY</code>。未设置就是 <code>NOT_RUN_HARDWARE</code>。不要编造凭据。本阶段的 <code>https://</code> 是 <code>NOT_RUN_HARDWARE</code>，因为没有链接 TLS 栈。</p></div>
+<div class="doc-block" id="quotas"><h2>配额</h2>
+<p><code>ResourceLimits</code> 限制对象大小、在途请求、注册（含已提交和已隔离的缓冲）、每租户在途字节、全局保留字节和每租户保留字节。幂等表有上限，条目会过期。</p>
+<p><code>MemoryStore</code> 在准入失败时直接拒绝，不驱逐。<code>FileStore</code> 在保留字节配额将要失败时，驱逐最旧的、未固定的已提交 block。它不会为了满足一个租户的配额去驱逐另一个租户，也不会驱逐已固定或已隔离的 block。<code>Invalidate</code> 是客户端的显式路径。</p>
+<p>分片额度、模拟 slab 上限、冷保留和回填字节预算，都是可重算 KV 的准入天花板。它们不是测过的集群规模。不要把热层当成用户数据的唯一副本来做容量规划。</p></div>
+<div class="doc-block" id="failure"><h2>失败与未命中</h2>
+<p>GPUCache 是 G3.5 共享热层。RustFS 是 G4 冷层。G3.5 未命中或节点丢失时，结果是一次干净的未命中，然后重算，再写回。没有纠删码，热层也没有持久副本。</p>
+<ul>
+<li>命中只属于身份兼容、且校验和仍然相符的 <code>COMMITTED</code> block。</li>
+<li><code>ABSENT</code>、<code>RESERVED</code>、<code>WRITING</code>、<code>EVICTING</code> 和 <code>QUARANTINED</code> 不返回载荷。</li>
+<li>未命中、超时、校验失败、版本不匹配、存储不可用、超预算回填、被隔离的 epoch、损坏或截断的文件，以及传输错误，都是重算。它们都不是成功的命中。</li>
+<li>错误的租户、模型、分词器、适配器或布局不是命中。错误的命中是故障。</li>
+<li>同一条哈希链上更短的 <code>valid_length</code> 是不兼容的未命中。服务不会在 block 内部切片。</li>
+<li>租约到期不能证明拷贝已经停止。隔离区域会留到排空证明，或一个更新的被隔离 epoch。</li>
+<li>重启会重新加载已提交文件，抬高 epoch，并丢掉在途预留。</li>
+<li>DPU 重启、GPU 复位、网卡闪断、存储丢失、NVMe 超时、控制面丢失，以及 RustFS 变慢或宕机，这些降级决定都是干净的未命中。这张表不是硬件故障注入。没有载荷，没有错误命中，没有永久阻塞。</li>
+</ul>
+<p>引擎可以通过同一套批量 API 把重算后的 block 写回。热层不会自己修复丢失的 block。</p></div>
+<div class="doc-block" id="ops"><h2>运维说明</h2>
+<p><code>dpu-demo</code> 是诊断草图。它打印是否选了 <code>dpu-bf3</code>，DOCA、SPDK 和 NVMe 没有链接，热层纠删码是关的，以及每个计划中的目标都是 <code>NOT_RUN_HARDWARE</code>。它不打印载荷、指纹或 prompt。因为没有打开设备，所以没有设备健康计数器。</p>
+<p><code>ControlPlane::begin_upgrade</code> 停止新的填充。在途填充仍可以完成。完成前的 <code>rollback</code> 回到服务，不隔离。<code>finish_upgrade</code> 抬高软件代际并隔离，于是旧 epoch 未命中，引擎重算。完成后的 <code>rollback</code> 会再次隔离。代际计数不会减小。这次回滚不包括 BlueField 固件、BFB 或 DOCA 包。除了错误应答上的配额种类字节 8（<code>RateLimit</code>），TCP 线格式不变。</p>
+<p>再平衡会隔离源，并返回一个空的目标目录。故障域隔离会移除该域中的成员，并拒绝移除最后一个成员。这些操作都不拷贝载荷字节。</p>
+<p>这棵树不操作这些事：不格式化 NVMe，不改 DPU 模式，不动固件，不改 IOMMU 或 BIOS，不改生产网络。G4 的在线调用保持由环境变量开关。如果以后有人用 Soft-RoCE 做冒烟，它也只是功能冒烟，不是性能数字。</p>
+<p>定位和分层分工见 <a href="/zh/docs/introduction/">介绍手册</a>。上游细节：<a href="https://github.com/rustfs/GPUCache/blob/main/docs/OPERATIONS.md" target="_blank" rel="noopener noreferrer">OPERATIONS.md</a> 和 <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README.md</a>。</p></div>
+</article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/zh/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS 是 RustFS, Inc. 的商标</p>
+    </div>
+    <div>
+      <p class="label">文档</p>
+      <ul class="footer-links"><li><a href="/zh/docs/introduction/">介绍</a></li><li><a href="/zh/docs/usage/">使用</a></li><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
+    </div>
+    <div>
+      <p class="label">项目</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 许可</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="语言"><li><a href="/docs/usage/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/usage/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/usage/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/usage/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/usage/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

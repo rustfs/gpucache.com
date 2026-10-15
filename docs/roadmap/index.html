@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
-    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/" aria-current="page">Docs</a>
+    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/introduction/">Introduction</a><a href="/docs/usage/">Usage</a><a href="/docs/" aria-current="page">Docs</a>
     <ul class="lang-switch" aria-label="Language"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -46,7 +46,7 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Docs</p>
-      <nav aria-label="Docs"><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/" aria-current="page">Roadmap</a><a href="/docs/quickstart/">Quick start</a></nav>
+      <nav aria-label="Docs"><a href="/docs/introduction/">Introduction</a><a href="/docs/usage/">Usage</a><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/" aria-current="page">Roadmap</a><a href="/docs/quickstart/">Quick start</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/docs/">Docs</a> <span aria-hidden="true">/</span> <span>Roadmap</span></p>
 <p class="label">Docs</p>
@@ -55,10 +55,10 @@
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">Status</th><th scope="col">Item</th></tr></thead>
-    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>Open-source repository created, under the Apache 2.0 license</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>Product position and architecture direction: the G3.5 tier, a DPU-based GDS KVCache, and a split between the hot tier and RustFS at G4</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>V1 core: Rust KV engine</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>RDMA / RoCEv2 communication layer</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>SPDK integration, direct NVMe access</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>NVIDIA DOCA integration and Arm cross-compilation, BlueField-3 support</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>Data path: through host memory, then GDS direct</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>Inference framework integration (vLLM, TensorRT-LLM)</td></tr></tbody>
+    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>Open-source repository created, under the Apache 2.0 license</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>Product position: GPUCache is the G3.5 shared KV hot tier and RustFS is the G4 cold tier. The DPU and GDS path is a direction, not a path this tree has run.</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>V1 A/B/C CPU contract: identity, protocol, MemoryStore, TCP service, file backend, and quotas. This row is not the hardware path.</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>V2 CPU slice: TCP transport, simulated registration, a shard-local directory, and a mock G4 cold path. One process is one shard.</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>V3: DPU feature gate and production-hardening stubs. Devices are not linked.</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>RDMA / RoCEv2 communication layer</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>SPDK integration, direct NVMe access</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>NVIDIA DOCA integration and Arm cross-compilation, BlueField-3 support</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>Data path: through host memory, then GDS direct</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>Inference framework integration (vLLM, TensorRT-LLM)</td></tr></tbody>
   </table>
 </div>
-<div class="doc-block"><h2>How to read the two states</h2><p>Implemented means the repository exists and the direction is written down. It does not mean a cache is running.</p><p>In development means the work is not on main. The V1 core, the Rust KV engine, is in a separate pull request. A row on this page changes to implemented only after that work is on main.</p><p>As of 2026-10-15 the main branch contains README.md and LICENSE only. Unchecked items in the README are not treated here as capabilities the project already has.</p></div></article>
+<div class="doc-block"><h2>How to read the two states</h2><p>Implemented means the CPU and TCP contract is in the main tree and can be run from source. It does not mean BlueField-3, GDS, DOCA, SPDK, or live RDMA ran.</p><p>In development means the hardware path is not a measured capability. Real RDMA and NIXL performance stay <code>NOT_RUN_HARDWARE</code>. Soft-RoCE is a functional smoke only, not a performance number.</p><p>A G3.5 miss or node loss is a clean miss: recompute, then write back. There is no erasure coding and no hot-tier durability replica. Cold durability is RustFS at G4. Detail is in the <a href="/docs/introduction/">introduction</a>.</p></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -69,7 +69,7 @@
     </div>
     <div>
       <p class="label">Docs</p>
-      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
+      <ul class="footer-links"><li><a href="/docs/introduction/">Introduction</a></li><li><a href="/docs/usage/">Usage</a></li><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
     </div>
     <div>
       <p class="label">Project</p>

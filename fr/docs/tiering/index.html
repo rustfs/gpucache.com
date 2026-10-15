@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
-    <a href="/fr/#problem">Problème</a><a href="/fr/#approach">Approche</a><a href="/fr/#architecture">Architecture</a><a href="/fr/#roadmap">Feuille de route</a><a href="/fr/#rustfs">RustFS</a><a href="/fr/#quickstart">Démarrage</a><a href="/fr/docs/" aria-current="page">Documentation</a>
+    <a href="/fr/#problem">Problème</a><a href="/fr/#approach">Approche</a><a href="/fr/#architecture">Architecture</a><a href="/fr/#roadmap">Feuille de route</a><a href="/fr/#rustfs">RustFS</a><a href="/fr/#quickstart">Démarrage</a><a href="/fr/docs/introduction/">Introduction</a><a href="/fr/docs/usage/">Utilisation</a><a href="/fr/docs/" aria-current="page">Documentation</a>
     <ul class="lang-switch" aria-label="Langue"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -46,13 +46,13 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Documentation</p>
-      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/" aria-current="page">Hiérarchie</a><a href="/fr/docs/roadmap/">Feuille de route</a><a href="/fr/docs/quickstart/">Démarrage</a></nav>
+      <nav aria-label="Documentation"><a href="/fr/docs/introduction/">Introduction</a><a href="/fr/docs/usage/">Utilisation</a><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/" aria-current="page">Hiérarchie</a><a href="/fr/docs/roadmap/">Feuille de route</a><a href="/fr/docs/quickstart/">Démarrage</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/fr/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/fr/docs/">Documentation</a> <span aria-hidden="true">/</span> <span>Hiérarchie</span></p>
 <p class="label">Documentation</p>
 <h1>Hiérarchie</h1>
 <p class="lede">Les noms ci-dessous sont ceux qu&#x27;on utilise d&#x27;ordinaire pour hiérarchiser le KV Cache d&#x27;inférence. GPUCache est G3.5. Ce n&#x27;est pas un autre nom pour G4.</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>En développement</span><p>GPUCache en G3.5 est en développement. Le tableau décrit la place prévue de chaque couche.</p></div>
+<div class="callout"><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span><span class="status status-preview"><i aria-hidden="true"></i>En développement</span><p>Le tableau est le modèle de couches. Le chemin qui tourne aujourd'hui est le contrat CPU et TCP sur des fichiers ordinaires. BlueField-3, GDS et le chemin matériel DPU sont en développement. Un miss G3.5 ou un nœud perdu est un miss propre : recalcul, puis réécriture. Pas d'erasure coding et pas de réplica de durabilité sur le tier chaud. RustFS en G4 garde les données froides.</p></div>
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">Couche</th><th scope="col">Support</th><th scope="col">Portée</th><th scope="col">Rôle pour le KV Cache</th><th scope="col">Produit</th></tr></thead>
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">Documentation</p>
-      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
+      <ul class="footer-links"><li><a href="/fr/docs/introduction/">Introduction</a></li><li><a href="/fr/docs/usage/">Utilisation</a></li><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
     </div>
     <div>
       <p class="label">Projet</p>

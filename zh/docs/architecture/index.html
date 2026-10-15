@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">菜单</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="页面区块">
-    <a href="/zh/#problem">问题</a><a href="/zh/#approach">方案</a><a href="/zh/#architecture">架构</a><a href="/zh/#roadmap">路线图</a><a href="/zh/#rustfs">与 RustFS</a><a href="/zh/#quickstart">快速开始</a><a href="/zh/docs/" aria-current="page">文档</a>
+    <a href="/zh/#problem">问题</a><a href="/zh/#approach">方案</a><a href="/zh/#architecture">架构</a><a href="/zh/#roadmap">路线图</a><a href="/zh/#rustfs">与 RustFS</a><a href="/zh/#quickstart">快速开始</a><a href="/zh/docs/introduction/">介绍</a><a href="/zh/docs/usage/">使用</a><a href="/zh/docs/" aria-current="page">文档</a>
     <ul class="lang-switch" aria-label="语言"><li><a href="/docs/architecture/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/architecture/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/architecture/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/architecture/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/architecture/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -46,21 +46,21 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">文档</p>
-      <nav aria-label="文档"><a href="/zh/docs/architecture/" aria-current="page">架构</a><a href="/zh/docs/tiering/">分层</a><a href="/zh/docs/roadmap/">路线图</a><a href="/zh/docs/quickstart/">快速开始</a></nav>
+      <nav aria-label="文档"><a href="/zh/docs/introduction/">介绍</a><a href="/zh/docs/usage/">使用</a><a href="/zh/docs/architecture/" aria-current="page">架构</a><a href="/zh/docs/tiering/">分层</a><a href="/zh/docs/roadmap/">路线图</a><a href="/zh/docs/quickstart/">快速开始</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/zh/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/zh/docs/">文档</a> <span aria-hidden="true">/</span> <span>架构</span></p>
 <p class="label">文档 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p>
 <h1>架构</h1>
 <p class="lede">GPUCache 把 KV 数据的热路径放在网卡、DPU 和 SSD 之间。下面写的是设计目标。</p>
 <div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>开发中</span><p>BlueField-3 支持、DPU 与 GDS 直通路径，以及和 vLLM、TensorRT-LLM 的对接，都在开发中。</p></div>
-<div class="doc-block"><h2>主分支上有什么</h2><p>截至 2026-10-15，github.com/rustfs/GPUCache 的主分支只有两个文件：README.md 和 LICENSE（Apache 2.0，Copyright RustFS, Inc.）。该 README 里的路线图条目都未勾选。</p><p>V1 核心在另一个 pull request 中开发，不在主分支上。一项能力只有进入主分支之后，本站才会标成「已实现」。</p></div>
+<div class="doc-block"><h2>主分支上有什么</h2><p>主分支包含 CPU/TCP 契约：V1 A/B/C，V2 切片（TCP、分片本地目录、mock 冷路径），以及 V3 桩（DPU 特性门和加固钩子）。能跑的是这份 CPU 契约。BlueField-3、GDS、DPU 硬件路径，以及真实的 RDMA/NIXL 性能，是「开发中」，并标为 <code>NOT_RUN_HARDWARE</code>。Soft-RoCE 只做功能冒烟，不是性能数字。</p><p>没有纠删码，热层也没有持久副本。G3.5 未命中或节点丢失是一次干净的未命中：重算，再写回。冷数据由 G4 的 RustFS 保存。本页的图仍是硬件路径的设计目标。请读 <a href="/zh/docs/introduction/">介绍手册</a> 和 <a href="/zh/docs/usage/">使用手册</a>。</p></div>
 <div class="doc-block"><h2>三个角色</h2><ul><li><strong>GPU</strong> 放正在生成时用到的 KV，并取回需要的 KV。</li><li><strong>DPU</strong> 运行 Rust KV 引擎，管理闪存。BlueField-3 支持开发中。</li><li><strong>闪存</strong> 共享 NVMe，存放集群可以复用的 KV。</li></ul></div>
 <div class="doc-block"><h2>数据路径</h2><p>下面这条线是设计目标，不是今天已经跑起来的路径。第一阶段要打通的是经主机内存的路径。</p><ol class="path" aria-label="设计目标中的数据路径，开发中"><li><strong>GPU 显存 / 主机内存</strong></li><li class="via">RDMA / RoCEv2</li><li><strong>DPU</strong><span>Rust KV 引擎</span></li><li class="via">SPDK</li><li><strong>NVMe 闪存</strong></li></ol><p><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p></div>
 <div class="doc-block"><h2>三级都在开发中</h2><ol><li><strong>主机内存路径</strong> KV 在主机 DRAM 和 DPU、闪存之间传输。这是第一阶段要打通的基线。</li><li><strong>暂存路径</strong> GPU 显存的数据先经过一次暂存，再交给 DPU。这是过渡形态，暂存必须可观测。</li><li><strong>GDS 直通</strong> GPU 显存经 DPU 直达闪存，没有主机暂存。这是 GPUCache 的目标形态。</li></ol><p>只有拿到运行时证据之后，公开材料才能写「支持 GDS 直通」：实际走了直通路径、没有回退或静默暂存、两端字节和校验一致。不能因为接口或设备类型就这么写。</p></div>
 <div class="doc-block"><h2>组件</h2><ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Rust KV 引擎 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>面向 KV Cache 的存储引擎，用 Rust 编写，运行在 DPU 的 Arm 核上。</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>RDMA / RoCEv2 传输 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>计算节点与 G3.5 之间走 RDMA 通信。</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>SPDK 闪存管理 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>在 DPU 上用 SPDK 直接访问 NVMe SSD。</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>NVIDIA DOCA 与 Arm 交叉编译 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>在 BlueField-3 上构建和运行。</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>推理框架对接 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>计划对接 vLLM、TensorRT-LLM 等推理框架的 KV Cache 接口（按 PagedAttention 的块粒度管理）。</p></div></li></ol></div>
 <div class="doc-block"><h2>CPU 的边界</h2><p>准确说法是「存储侧不需要 x86 存储主机，KV 数据的热路径不经过主机 CPU 转发」。计算节点上仍要保留注册内存、提交请求、收取完成事件这类最小状态。</p></div>
 <div class="doc-block"><h2>丢失意味着什么</h2><p>GPUCache 不承担数据持久性。G3.5 节点故障或数据丢失时，推理框架拿到的是一次 miss，按原来的方式重算预填充，再写回 GPUCache，下次就能命中。</p><p>需要长期保存的上下文和产物存到 G4 的 RustFS。RustFS 是容量层，GPUCache 是热层。</p></div>
-<div class="doc-block"><h2>不适合的场景</h2><ul><li>需要持久保存的数据。G3.5 是缓存，持久数据放 G4 RustFS。</li><li>训练场景的 checkpoint 存储。那是 G4 的工作。</li><li>想现在就部署到生产环境。V1 还在开发中。</li></ul></div></article>
+<div class="doc-block"><h2>不适合的场景</h2><ul><li>需要持久保存的数据。G3.5 是缓存，持久数据放 G4 RustFS。</li><li>训练场景的 checkpoint 存储。那是 G4 的工作。</li><li>想现在就部署到生产环境。CPU 契约可以从源码跑；硬件路径仍是「开发中」，这棵树也不是生产就绪。</li></ul></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">文档</p>
-      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
+      <ul class="footer-links"><li><a href="/zh/docs/introduction/">介绍</a></li><li><a href="/zh/docs/usage/">使用</a></li><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
     </div>
     <div>
       <p class="label">项目</p>

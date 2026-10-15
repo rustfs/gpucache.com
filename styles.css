@@ -639,9 +639,30 @@ pre .str { color: var(--syntax-string); }
   text-transform: uppercase;
 }
 
+.manual-toc {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 28px;
+}
+
+.manual-toc a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin-left: -1px;
+  padding: 0 12px;
+  border: 1px solid var(--outline);
+  color: var(--link);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.manual-toc a:hover { background: var(--paper); }
+
 .doc-links {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
   padding: 0;
   list-style: none;
