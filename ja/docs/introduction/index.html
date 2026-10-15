@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>紹介マニュアル｜GPUCache</title>
+  <meta name="description" content="GPUCache の紹介。G3.5 の共有 KV ホット層、G4 の RustFS、実行できる CPU と TCP の契約。BlueField-3、GDS、DPU ハードウェアは開発中。" />
+  <link rel="canonical" href="https://gpucache.com/ja/docs/introduction/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/introduction/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/introduction/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/introduction/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/introduction/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/introduction/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/introduction/" />
+  <meta property="og:title" content="紹介マニュアル｜GPUCache" />
+  <meta property="og:description" content="GPUCache の紹介。G3.5 の共有 KV ホット層、G4 の RustFS、実行できる CPU と TCP の契約。BlueField-3、GDS、DPU ハードウェアは開発中。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/ja/docs/introduction/" />
+  <meta property="og:locale" content="ja_JP" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">本文へ進む</a>
+<header class="site-header">
+  <a class="brand" href="/ja/" aria-label="RustFS GPUCache ホーム">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">メニュー</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="セクション">
+    <a href="/ja/#problem">課題</a><a href="/ja/#approach">方針</a><a href="/ja/#architecture">アーキテクチャ</a><a href="/ja/#roadmap">ロードマップ</a><a href="/ja/#rustfs">RustFS</a><a href="/ja/#quickstart">クイックスタート</a><a href="/ja/docs/introduction/" aria-current="page">紹介</a><a href="/ja/docs/usage/">使い方</a><a href="/ja/docs/">ドキュメント</a>
+    <ul class="lang-switch" aria-label="言語"><li><a href="/docs/introduction/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/introduction/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/introduction/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/introduction/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/introduction/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="言語"><li><a href="/docs/introduction/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/introduction/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/introduction/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/introduction/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/introduction/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">ドキュメント</p>
+      <nav aria-label="ドキュメント"><a href="/ja/docs/introduction/" aria-current="page">紹介</a><a href="/ja/docs/usage/">使い方</a><a href="/ja/docs/architecture/">アーキテクチャ</a><a href="/ja/docs/tiering/">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/ja/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/ja/docs/">ドキュメント</a> <span aria-hidden="true">/</span> <span>紹介</span></p>
+<p class="label">紹介</p>
+<h1>紹介マニュアル</h1>
+<p class="lede">GPUCache は G3.5 の共有 KV ホット層です。RustFS はより冷たい G4 の容量層です。このツリーで実行できるのは CPU と TCP の契約です。BlueField-3、GDS、DPU のハードウェア経路、そして実 RDMA / NIXL の性能は、いずれも開発中です。</p>
+<div class="callout"><span class="status status-done"><i aria-hidden="true"></i>実装済み</span><span class="status status-preview"><i aria-hidden="true"></i>開発中</span><p>V1 A/B/C と V2 の CPU スライスは main にあります。V3 は DPU のフィーチャーゲートと、本番向け硬化のスタブです。ハードウェア経路は <code>NOT_RUN_HARDWARE</code> を出します。Soft-RoCE は機能スモークだけで、性能値ではありません。</p></div>
+<nav class="manual-toc" aria-label="このページ"><a href="#position">位置づけ</a><a href="#status">動くもの</a><a href="#architecture">アーキテクチャ</a><a href="#tiering">G3.5 と G4</a><a href="#protocol">同じプロトコル</a></nav>
+<div class="doc-block" id="position"><h2>製品の位置づけ</h2>
+<p>GPUCache は、分離推論向けのオープンな共有 KV キャッシュ層です。NVIDIA CMX の用語では、この層が G3.5 です。GPU HBM の手前にあり、同じテナント、同じモデル、同じレイアウトの要求で再利用します。<a href="https://github.com/rustfs/rustfs" target="_blank" rel="noopener noreferrer">RustFS</a> は G4 の容量バックエンドです。G4 は prefill から decode へのホットパスには乗りません。</p>
+<p>KV ブロックは再計算できるアクセラレータ状態です。利用者のプロンプトの唯一のコピーではなく、モデルに依存しない長期記憶でもありません。トークン化、アテンション、スケジューリングは推論エンジンの仕事のままです。このリポジトリはそれらを置き換えません。</p>
+<p>ミス、タイムアウト、チェックサム不一致、バージョン不一致、ストア停止は、エンジンへ戻します。エンジンは再計算し、ブロックを書き戻すことができます。誤ったヒットは故障です。インストールできるパッケージはなく、本番配置もなく、測ったクラスタ規模もありません。このツリーを PB 級や本番準備完了とは書かないでください。</p>
+<p>ライセンスは Apache 2.0 です。公開文は <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">main の README</a> と、その隣のドキュメントに従います。</p></div>
+<div class="doc-block" id="status"><h2>動くものと、開発中のもの</h2>
+<p>既定のビルドは CPU と TCP です。DOCA、CUDA、RDMA、NIXL、SPDK はリンクしません。aarch64 ビルドは CPU ビルドであり、BlueField の機能試験ではありません。フィーチャー <code>rdma-nixl</code> は libnixl をリンクしません。フィーチャー <code>dpu-bf3</code> はデバイスをリンクしません。<code>NixlTransport::open</code>、<code>open_doca</code>、<code>open_nvme_device</code>、<code>open_spdk</code> は拒否します。</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th scope="col">項目</th><th scope="col">状態</th><th scope="col">意味</th></tr></thead>
+<tbody>
+<tr><th scope="row">V1 A/B/C の CPU 契約</th><td><span class="status status-done"><i aria-hidden="true"></i>実装済み</span></td><td>アイデンティティ、プロトコル、<code>MemoryStore</code>、TCP サービス、ファイルバックエンド、LRU 受付、テナントクォータ、ファズ、障害試験。バイトは合成です。実 vLLM の KV エクスポートは <code>NOT_RUN_HARDWARE</code> です。</td></tr>
+<tr><th scope="row">V2：TCP、シャードディレクトリ、コールド経路</th><td><span class="status status-done"><i aria-hidden="true"></i>実装済み</span></td><td>TCP が既定のトランスポートです。登録は模擬プールであり、NIC ではありません。1 プロセスが 1 シャードです。G4 のパックとリフィルはモックに対して動きます。オペレータが <code>GPUCACHE_RUSTFS_*</code> を置かない限り、ライブ RustFS は <code>NOT_RUN_HARDWARE</code> です。</td></tr>
+<tr><th scope="row">V3：DPU ゲートと硬化スタブ</th><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>CPU 側の認可、リプレイ、クォータ、コールド操作のフックはツリーにあります。リバランスとローリングアップグレードはフィルをフェンスし、レプリカはコピーしません。デバイスはリンクされません。<code>dpu-demo</code> は <code>NOT_RUN_HARDWARE</code> を出します。</td></tr>
+<tr><th scope="row">BlueField-3、GDS、DPU ハードウェア経路</th><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>常に開発中です。実装済みでも、配備済みでも、測った本番経路でもありません。</td></tr>
+<tr><th scope="row">実 RDMA / NIXL の性能</th><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>ライブ RDMA は <code>NOT_RUN_HARDWARE</code> です。対になった TTFT、TPOT、TCO は公表しません。<code>tco=TCO_UNKNOWN</code>。<code>go_gate=NOT_EVALUATED</code>。TCP は DPU の基準線ではありません。</td></tr>
+<tr><th scope="row">Soft-RoCE</th><td>スモークのみ</td><td>Soft-RoCE は機能スモークだけです。性能値ではなく、このサイトもその数字を出しません。</td></tr>
+<tr><th scope="row">エンジン統合</th><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>経路は未選定です。ネイティブ vLLM KV connector か LMCache かは決まっていません。第二エンジンは追加していません。</td></tr>
+<tr><th scope="row">イレイジャーコーディングとホット層レプリカ</th><td>この製品には無い</td><td>作りません。ホット層のイレイジャーコーディングは有効にできません。失ったホットブロックはクリーンミスです。</td></tr>
+</tbody>
+</table></div>
+<p class="footnote">コマンド、成功バナー、各デモの限界は <a href="/ja/docs/usage/">利用マニュアル</a> にあります。</p></div>
+<div class="doc-block" id="architecture"><h2>アーキテクチャ</h2>
+<p>ホームの図は DPU 経路の設計目標です。このツリーはその経路を実行していません。実行できる形は次です。</p>
+<pre data-copy="コピー" data-copied="コピーしました"><code>engine (not in this tree; NOT_RUN_HARDWARE)
+        |  CacheIdentity + batch API
+        v
+gpucache-transport    TCP, loopback by default
+        v
+FileStore             ordinary files in a directory you pass
+        v
+MemoryStore           in-process contract
+gpucache-cold         optional G4 mock. Not on the TCP hot path.
+gpucache-dpu          simulated queue. Not on the TCP hot path.</code></pre>
+<ul>
+<li><code>gpucache-core-types</code> は、版付き <code>CacheIdentity</code>、長さ区切りの論理キーと物理キー、ブロックのライフサイクル、チェックサム、クォータ、エラーを持ちます。</li>
+<li><code>gpucache-protocol</code> は、バッチメッセージ、期限、テナント認証コンテキスト、ワイヤ版の交渉を持ちます。</li>
+<li><code>gpucache-storage</code> は <code>MemoryStore</code>、<code>FileStore</code>、<code>kv-block-xfer</code> を持ちます。<code>FileStore</code> はディスクをフォーマットせず、デバイスノードも開きません。</li>
+<li><code>gpucache-transport</code> は TCP の正しさの経路に、模擬の登録バッファプールとシャードローカルなディレクトリを足したものです。</li>
+<li><code>gpucache-cold</code> はマニフェストをパックし、トレイト経由で Put、Head、RangeGet、Delete ができます。トランスポートはこれに依存しません。</li>
+<li><code>gpucache-dpu</code> は BlueField のフィーチャースロットです。ホットパスはこれを呼びません。</li>
+<li><code>gpucache-bench</code> は対の基準線の名前を出し、<code>NOT_RUN_HARDWARE</code> を印字します。時間を作ってはいけません。</li>
+</ul>
+<p>ヒットになるのは、アイデンティティが互換で、保存したチェックサムがバイトとまだ一致する <code>COMMITTED</code> ブロックだけです。<code>ABSENT</code>、<code>RESERVED</code>、<code>WRITING</code>、<code>EVICTING</code>、<code>QUARANTINED</code> は読めません。</p>
+<pre data-copy="コピー" data-copied="コピーしました"><code>ABSENT -&gt; RESERVED -&gt; WRITING -&gt; COMMITTED -&gt; EVICTING -&gt; ABSENT
+                 \-&gt; QUARANTINED -&gt; ABSENT</code></pre>
+<p>失敗またはタイムアウトした登録領域は <code>QUARANTINED</code> になります。リース期限では解放しません。回収には、認可されたドレイン証明か、領域をフェンスする新しいエポックが要ります。レイアウトと、バイトに影響する他のフィールドが一致すれば、より長いハッシュ鎖は、より短いコミット済みブロック全体に対して <code>PrefixHit</code> を返せます。サービスはブロックの内側を切りません。同じ鎖のより短い <code>valid_length</code> は非互換ミスです。</p>
+<p>生のプロンプト、トークン ID、メディアバイトはアイデンティティのフィールドではありません。呼び出し側がストアの外でハッシュします。同じトークンが同じバイトを意味するわけではありません。論理プレフィックスキーと物理バイトキーは別の符号化です。再利用は 1 テナント、1 モデル、1 レイアウトの中だけです。リシャード、量子化、レイアウト不一致はミスです。テナントをまたぐ重複排除はありません。</p></div>
+<div class="doc-block" id="tiering"><h2>G3.5 と G4</h2>
+<p>G3.5 の GPUCache は共有ホット層です。G4 の RustFS は冷たい容量層です。ホット層は失ったブロックを修復しません。イレイジャーコーディングはなく、ホット層の耐久レプリカもありません。喪失、破損、短い書き込み、ディスク満杯、退避、検査失敗はクリーンミスです。エンジンが再計算し、ブロックを書き戻せます。</p>
+<p>メモリ上のコミットのあとディスク書き込みが失敗した場合、そのコミットは捨てられ、request id も忘れられます。保存されていないバイトを、リプレイが成功と報告することはありません。ホットな共有プレフィックスの追加コピーが将来あっても、それは遅延のヒントです。このツリーには無く、耐久の約束にもなりません。</p>
+<p>冷データの耐久は RustFS の仕事です。TCP サービスはコールドクレートを呼びません。予算超過のリフィルや、遅い、あるいは落ちている RustFS はペイロードを返しません。その結果は再計算であり、ヒットではありません。ライブバケットへの <code>https://</code> は、TLS スタックをリンクしていないため、ここでは <code>NOT_RUN_HARDWARE</code> です。オペレータがテストバケットを認可していない限り、<code>GPUCACHE_RUSTFS_*</code> は未設定のままにしてください。</p></div>
+<div class="doc-block" id="protocol"><h2>単一ノードから分散へ、プロトコルは同じ</h2>
+<p>実行できる経路のバッチ API は同じです。Lookup、Reserve/Put、Commit、Get、Release/Cancel、Invalidate。各項目は <code>request_id</code>、エポック、期限を持ち、当てはまるときは世代、長さ、チェックサムも持ちます。</p>
+<p><code>MemoryStore</code> はプロセス内のシングルスレッド契約です。TCP サービスは同じ API を出します。シャード 0 が単一ノードの場合で、他のシャードと同じ <code>ShardDirectory</code> のメソッドを使います。1 プロセスが 1 シャードです。トークン単位の中央ディレクトリはなく、ブロック単位のクォーラムもありません。メンバー変更はエポックを上げ、進行中のフィルを落とし、クレジットを返します。シングルフライトの参加者は二度目のクレジットを取らず、ディレクトリからペイロードバイトを受け取りません。</p>
+<p>このツリーで、1 ノードから分散層へ進む段はそれだけです。同じプロトコル、同じディレクトリメソッド、依然として 1 プロセス 1 シャード。シャードをまたぐ形は別のワイヤプロトコルではなく、動いているクォーラムでもありません。止まったリスナに話し続けるクライアントはトランスポートエラーを受け、再計算しなければなりません。古いヒットは残りません。</p>
+<p>インストール、起動、デモ、設定、クォータ、運用メモは <a href="/ja/docs/usage/">利用マニュアル</a> です。設計目標の図は <a href="/ja/docs/architecture/">アーキテクチャ</a> に残します。層の名前は <a href="/ja/docs/tiering/">階層</a> に残します。</p></div>
+</article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/ja/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS は RustFS, Inc. の商標です</p>
+    </div>
+    <div>
+      <p class="label">ドキュメント</p>
+      <ul class="footer-links"><li><a href="/ja/docs/introduction/">紹介</a></li><li><a href="/ja/docs/usage/">使い方</a></li><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
+    </div>
+    <div>
+      <p class="label">プロジェクト</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 ライセンス</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="言語"><li><a href="/docs/introduction/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/introduction/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/introduction/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/introduction/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/introduction/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

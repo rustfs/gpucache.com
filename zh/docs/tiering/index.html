@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">菜单</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="页面区块">
-    <a href="/zh/#problem">问题</a><a href="/zh/#approach">方案</a><a href="/zh/#architecture">架构</a><a href="/zh/#roadmap">路线图</a><a href="/zh/#rustfs">与 RustFS</a><a href="/zh/#quickstart">快速开始</a><a href="/zh/docs/" aria-current="page">文档</a>
+    <a href="/zh/#problem">问题</a><a href="/zh/#approach">方案</a><a href="/zh/#architecture">架构</a><a href="/zh/#roadmap">路线图</a><a href="/zh/#rustfs">与 RustFS</a><a href="/zh/#quickstart">快速开始</a><a href="/zh/docs/introduction/">介绍</a><a href="/zh/docs/usage/">使用</a><a href="/zh/docs/" aria-current="page">文档</a>
     <ul class="lang-switch" aria-label="语言"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -46,13 +46,13 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">文档</p>
-      <nav aria-label="文档"><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/" aria-current="page">分层</a><a href="/zh/docs/roadmap/">路线图</a><a href="/zh/docs/quickstart/">快速开始</a></nav>
+      <nav aria-label="文档"><a href="/zh/docs/introduction/">介绍</a><a href="/zh/docs/usage/">使用</a><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/" aria-current="page">分层</a><a href="/zh/docs/roadmap/">路线图</a><a href="/zh/docs/quickstart/">快速开始</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/zh/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/zh/docs/">文档</a> <span aria-hidden="true">/</span> <span>分层</span></p>
 <p class="label">文档</p>
 <h1>分层</h1>
 <p class="lede">各层采用推理 KV Cache 分层的通用说法。GPUCache 位于 G3.5，不是 G4 的另一种写法。</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>开发中</span><p>G3.5 上的 GPUCache 仍在开发中。下表写的是每一层预定的位置。</p></div>
+<div class="callout"><span class="status status-done"><i aria-hidden="true"></i>已实现</span><span class="status status-preview"><i aria-hidden="true"></i>开发中</span><p>下表是分层模型。今天能跑的是普通文件上的 CPU/TCP 契约。BlueField-3、GDS 和 DPU 硬件路径是「开发中」。G3.5 未命中或节点丢失是一次干净的未命中：重算，再写回。没有纠删码，热层也没有持久副本。冷数据由 G4 的 RustFS 保存。</p></div>
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">层级</th><th scope="col">介质</th><th scope="col">作用域</th><th scope="col">在 KV Cache 里的角色</th><th scope="col">对应产品</th></tr></thead>
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">文档</p>
-      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
+      <ul class="footer-links"><li><a href="/zh/docs/introduction/">介绍</a></li><li><a href="/zh/docs/usage/">使用</a></li><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
     </div>
     <div>
       <p class="label">项目</p>

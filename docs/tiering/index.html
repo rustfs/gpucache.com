@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
-    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/" aria-current="page">Docs</a>
+    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/introduction/">Introduction</a><a href="/docs/usage/">Usage</a><a href="/docs/" aria-current="page">Docs</a>
     <ul class="lang-switch" aria-label="Language"><li><a href="/docs/tiering/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/tiering/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/tiering/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/tiering/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/tiering/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -46,13 +46,13 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Docs</p>
-      <nav aria-label="Docs"><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/" aria-current="page">Tiering</a><a href="/docs/roadmap/">Roadmap</a><a href="/docs/quickstart/">Quick start</a></nav>
+      <nav aria-label="Docs"><a href="/docs/introduction/">Introduction</a><a href="/docs/usage/">Usage</a><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/" aria-current="page">Tiering</a><a href="/docs/roadmap/">Roadmap</a><a href="/docs/quickstart/">Quick start</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/docs/">Docs</a> <span aria-hidden="true">/</span> <span>Tiering</span></p>
 <p class="label">Docs</p>
 <h1>Tiering</h1>
 <p class="lede">The names below are the usual ones for inference KV Cache tiering. GPUCache is G3.5. It is not another name for G4.</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In development</span><p>GPUCache at G3.5 is in development. The table describes the intended place of each tier.</p></div>
+<div class="callout"><span class="status status-done"><i aria-hidden="true"></i>Implemented</span><span class="status status-preview"><i aria-hidden="true"></i>In development</span><p>The table is the tier model. The path that runs today is the CPU and TCP contract on ordinary files. BlueField-3, GDS, and the DPU hardware path are in development. A G3.5 miss or node loss is a clean miss: recompute, then write back. There is no erasure coding and no hot-tier durability replica. RustFS at G4 keeps cold data.</p></div>
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">Tier</th><th scope="col">Medium</th><th scope="col">Scope</th><th scope="col">Role for KV Cache</th><th scope="col">Product</th></tr></thead>
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">Docs</p>
-      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
+      <ul class="footer-links"><li><a href="/docs/introduction/">Introduction</a></li><li><a href="/docs/usage/">Usage</a></li><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
     </div>
     <div>
       <p class="label">Project</p>

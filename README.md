@@ -14,12 +14,12 @@ GPUCache gives a GPU cluster a shared KV Cache hot tier. It is written in Rust, 
 | Français | `/fr/` |
 | 中文 | `/zh/` |
 
-Each language has a docs section: architecture, tiering, roadmap, and quick start. Pages include `hreflang` alternates for `en`, `ja`, `de`, `fr`, `zh`, and `x-default`.
+Each language has a docs section: introduction, usage, architecture, tiering, roadmap, and quick start. The introduction and the usage manual follow the main branch of [GPUCache](https://github.com/rustfs/GPUCache). The path that runs is the CPU and TCP contract. BlueField-3, GDS, the DPU hardware path, and real RDMA or NIXL performance stay in development. Soft-RoCE is a functional smoke only, not a performance number. A G3.5 miss or node loss is a clean miss: recompute, then write back. There is no erasure coding and no hot-tier durability replica. Pages include `hreflang` alternates for `en`, `ja`, `de`, `fr`, `zh`, and `x-default`.
 
 ## Files
 
 - `index.html` and `ja/`, `de/`, `fr/`, `zh/` — landing pages
-- `docs/` — English docs; other languages live under their prefix
+- `docs/` — English docs, including `docs/introduction/` and `docs/usage/`; other languages live under their prefix
 - `styles.css` — RustFS design tokens and layout
 - `script.js` — menu and code-copy button
 - `design-tokens.md` — token roles and copy constraints

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Démarrage | GPUCache</title>
-  <meta name="description" content="Démarrage de GPUCache. La V1 est en développement. Il n&#x27;y a pas de version installable. La seule commande de cette page est git clone." />
+  <meta name="description" content="Démarrage de GPUCache. Exécuter le contrat CPU et TCP depuis les sources. Pas de paquet installable. Les chemins matériels sont en développement." />
   <link rel="canonical" href="https://gpucache.com/fr/docs/quickstart/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/quickstart/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/quickstart/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/quickstart/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/quickstart/" />
   <meta property="og:title" content="Démarrage | GPUCache" />
-  <meta property="og:description" content="Démarrage de GPUCache. La V1 est en développement. Il n&#x27;y a pas de version installable. La seule commande de cette page est git clone." />
+  <meta property="og:description" content="Démarrage de GPUCache. Exécuter le contrat CPU et TCP depuis les sources. Pas de paquet installable. Les chemins matériels sont en développement." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/fr/docs/quickstart/" />
   <meta property="og:locale" content="fr_FR" />
@@ -34,7 +34,7 @@
   </a>
   <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
   <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
-    <a href="/fr/#problem">Problème</a><a href="/fr/#approach">Approche</a><a href="/fr/#architecture">Architecture</a><a href="/fr/#roadmap">Feuille de route</a><a href="/fr/#rustfs">RustFS</a><a href="/fr/#quickstart">Démarrage</a><a href="/fr/docs/" aria-current="page">Documentation</a>
+    <a href="/fr/#problem">Problème</a><a href="/fr/#approach">Approche</a><a href="/fr/#architecture">Architecture</a><a href="/fr/#roadmap">Feuille de route</a><a href="/fr/#rustfs">RustFS</a><a href="/fr/#quickstart">Démarrage</a><a href="/fr/docs/introduction/">Introduction</a><a href="/fr/docs/usage/">Utilisation</a><a href="/fr/docs/" aria-current="page">Documentation</a>
     <ul class="lang-switch" aria-label="Langue"><li><a href="/docs/quickstart/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/quickstart/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/quickstart/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/quickstart/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/docs/quickstart/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
   </nav>
   <div class="header-tools">
@@ -46,17 +46,19 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Documentation</p>
-      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/">Hiérarchie</a><a href="/fr/docs/roadmap/">Feuille de route</a><a href="/fr/docs/quickstart/" aria-current="page">Démarrage</a></nav>
+      <nav aria-label="Documentation"><a href="/fr/docs/introduction/">Introduction</a><a href="/fr/docs/usage/">Utilisation</a><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/">Hiérarchie</a><a href="/fr/docs/roadmap/">Feuille de route</a><a href="/fr/docs/quickstart/" aria-current="page">Démarrage</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/fr/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/fr/docs/">Documentation</a> <span aria-hidden="true">/</span> <span>Démarrage</span></p>
 <p class="label">Démarrage <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p>
 <h1>Démarrage</h1>
 <div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>En développement</span><p>Il n&#x27;y a pas de version installable. Ne lisez pas cette page comme un guide de déploiement.</p></div>
-<p class="lede">Le cœur V1 de GPUCache est en développement dans une pull request séparée et n&#x27;est pas sur la branche main. Les étapes d&#x27;installation et de déploiement seront écrites ici à la publication de la V1.</p>
-<ol class="steps"><li>Mettre une étoile ou suivre le dépôt sur <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a> pour être prévenu d&#x27;une publication.</li><li>Lire la description d&#x27;architecture dans le <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a>.</li><li>Ouvrir une <a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">issue</a> avec le scénario : framework d&#x27;inférence, longueur de contexte, taille du cluster.</li></ol>
-<pre data-copy="Copier" data-copied="Copié"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span></code></pre>
-<p class="footnote">La branche main ne contient pas encore de code applicatif, donc cette page ne donne ni commande de build ni commande d&#x27;exécution.</p>
-<div class="doc-block"><h2>Ce qui n&#x27;est pas encore là</h2><ul><li>Pas de paquet installable.</li><li>Pas d&#x27;instructions de build.</li><li>Pas d&#x27;instructions d&#x27;exécution.</li><li>Pas de guide de déploiement.</li></ul></div>
+<p class="lede">Il n'y a pas de paquet installable. Les commandes ci-dessous exécutent le contrat CPU et TCP depuis une extraction. Elles ne déploient pas un DPU. Le détail est dans le <a href="/fr/docs/usage/">manuel d'utilisation</a>.</p>
+<ol class="steps"><li>Cloner <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">github.com/rustfs/GPUCache</a>. Rust stable, MSRV 1.85, est choisi par <code>rust-toolchain.toml</code>.</li><li>Exécuter <code>cargo test --workspace --all-targets</code>. C'est la repro du contrat CPU. Les octets sont synthétiques.</li><li>TCP en loopback, démos, quotas et miss propre : <a href="/fr/docs/usage/">manuel d'utilisation</a>.</li></ol>
+<pre data-copy="Copier" data-copied="Copié"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span>
+<span class="kw">cd</span> GPUCache
+<span class="kw">cargo test</span> --workspace --all-targets</code></pre>
+<p class="footnote">Cette page n'est pas un déploiement de production. Les chemins matériels impriment <code>NOT_RUN_HARDWARE</code>. Voir le <a href="/fr/docs/usage/">manuel d'utilisation</a>.</p>
+<div class="doc-block"><h2>Ce que cette page ne prétend pas</h2><ul><li>Pas de paquet installable et pas de déploiement de production.</li><li>BlueField-3, GDS, le chemin matériel DPU et une performance RDMA ou NIXL réelle sont en développement.</li><li>Soft-RoCE est un smoke fonctionnel seulement, pas un chiffre de performance.</li><li>Pas d'erasure coding et pas de réplica de durabilité sur le tier chaud. Une perte est un miss propre.</li></ul></div>
 <div class="doc-block"><h2>Notes liées</h2><p><a href="/fr/docs/architecture/">Architecture</a> · <a href="/fr/docs/roadmap/">Feuille de route</a></p></div></article>
   </div>
 </main>
@@ -68,7 +70,7 @@
     </div>
     <div>
       <p class="label">Documentation</p>
-      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
+      <ul class="footer-links"><li><a href="/fr/docs/introduction/">Introduction</a></li><li><a href="/fr/docs/usage/">Utilisation</a></li><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
     </div>
     <div>
       <p class="label">Projet</p>
