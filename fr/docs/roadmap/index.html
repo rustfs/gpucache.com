@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Feuille de route | GPUCache</title>
+  <meta name="description" content="Feuille de route de GPUCache. Réalisé veut dire présent sur la branche main. Le moteur, RDMA, SPDK, DOCA, le chemin de données et le raccordement aux frameworks sont en développement." />
+  <link rel="canonical" href="https://gpucache.com/fr/docs/roadmap/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/roadmap/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/roadmap/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/roadmap/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/roadmap/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/roadmap/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/roadmap/" />
+  <meta property="og:title" content="Feuille de route | GPUCache" />
+  <meta property="og:description" content="Feuille de route de GPUCache. Réalisé veut dire présent sur la branche main. Le moteur, RDMA, SPDK, DOCA, le chemin de données et le raccordement aux frameworks sont en développement." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/fr/docs/roadmap/" />
+  <meta property="og:locale" content="fr_FR" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Aller au contenu</a>
+<header class="site-header">
+  <a class="brand" href="/fr/" aria-label="Accueil RustFS GPUCache">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
+    <a href="/fr/#problem">Problème</a><a href="/fr/#approach">Approche</a><a href="/fr/#architecture">Architecture</a><a href="/fr/#roadmap">Feuille de route</a><a href="/fr/#rustfs">RustFS</a><a href="/fr/#quickstart">Démarrage</a><a href="/fr/docs/" aria-current="page">Documentation</a>
+    <ul class="lang-switch" aria-label="Langue"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Langue"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">Documentation</p>
+      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/">Hiérarchie</a><a href="/fr/docs/roadmap/" aria-current="page">Feuille de route</a><a href="/fr/docs/quickstart/">Démarrage</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/fr/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/fr/docs/">Documentation</a> <span aria-hidden="true">/</span> <span>Feuille de route</span></p>
+<p class="label">Documentation</p>
+<h1>Feuille de route</h1>
+<p class="lede">L&#x27;état suit la branche main du dépôt GitHub et change avec cette branche. Cette page ne promet ni une date de publication ni un numéro de version.</p>
+<div class="table-wrap" tabindex="0">
+  <table>
+    <thead><tr><th scope="col">État</th><th scope="col">Élément</th></tr></thead>
+    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Dépôt open source créé, sous licence Apache 2.0</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Position du produit et direction d&#x27;architecture : couche G3.5, GDS KVCache fondé sur DPU, et partage entre la couche chaude et RustFS en G4</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Cœur de la V1 : moteur KV en Rust</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Couche de communication RDMA / RoCEv2</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration SPDK, accès direct au NVMe</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration NVIDIA DOCA et compilation croisée Arm, prise en charge de BlueField-3</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Chemin de données : via la mémoire hôte, puis accès direct GDS</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Raccordement aux frameworks d&#x27;inférence (vLLM, TensorRT-LLM)</td></tr></tbody>
+  </table>
+</div>
+<div class="doc-block"><h2>Comment lire les deux états</h2><p>Réalisé veut dire que le dépôt existe et que la direction est écrite. Cela ne veut pas dire qu&#x27;un cache tourne.</p><p>En développement veut dire que le travail n&#x27;est pas sur main. Le cœur de la V1, le moteur KV en Rust, est dans une pull request séparée. Une ligne de cette page passe à réalisé seulement quand ce travail est sur main.</p><p>Au 2026-10-15, la branche main ne contient que README.md et LICENSE. Les éléments non cochés du README ne sont pas traités ici comme des capacités que le projet a déjà.</p></div></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/fr/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS est une marque de RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Documentation</p>
+      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Projet</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Licence Apache 2.0</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Langue"><li><a href="/docs/roadmap/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/roadmap/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/roadmap/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/roadmap/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/docs/roadmap/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

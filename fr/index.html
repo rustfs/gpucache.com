@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GPUCache | KV Cache de la couche G3.5 sur DPU</title>
+  <meta name="description" content="GPUCache est un GDS KVCache fondé sur DPU, construit par RustFS. Il donne aux clusters GPU une couche chaude de KV Cache partagée en G3.5. Écrit en Rust, open source sous Apache 2.0, en développement." />
+  <link rel="canonical" href="https://gpucache.com/fr/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/" />
+  <meta property="og:title" content="GPUCache | KV Cache de la couche G3.5 sur DPU" />
+  <meta property="og:description" content="GPUCache est un GDS KVCache fondé sur DPU, construit par RustFS. Il donne aux clusters GPU une couche chaude de KV Cache partagée en G3.5. Écrit en Rust, open source sous Apache 2.0, en développement." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/fr/" />
+  <meta property="og:locale" content="fr_FR" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Aller au contenu</a>
+<header class="site-header">
+  <a class="brand" href="/fr/" aria-label="Accueil RustFS GPUCache">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
+    <a href="/fr/#problem">Problème</a><a href="/fr/#approach">Approche</a><a href="/fr/#architecture">Architecture</a><a href="/fr/#roadmap">Feuille de route</a><a href="/fr/#rustfs">RustFS</a><a href="/fr/#quickstart">Démarrage</a><a href="/fr/docs/">Documentation</a>
+    <ul class="lang-switch" aria-label="Langue"><li><a href="/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Langue"><li><a href="/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="label">RUSTFS GPUCACHE · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p>
+        <h1>Le KV Cache de la couche G3.5, exécuté sur un DPU.</h1>
+        <p class="lede">GPUCache est un GDS KVCache fondé sur DPU. Il place le KV Cache qui ne tient plus dans la mémoire GPU sur du flash NVMe partagé, géré par un DPU, et le renvoie au GPU quand il faut. Un contexte déjà calculé n&#x27;a pas à être recalculé.</p>
+        <p class="fine">Écrit en Rust · Apache 2.0 · prise en charge de BlueField-3 en développement</p>
+        <div class="actions">
+          <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">Suivre l&#x27;avancement sur GitHub</a>
+          <a class="button button-secondary" href="#architecture">Voir l&#x27;architecture</a>
+        </div>
+      </div>
+      <aside class="tier-card">
+        <p class="label">Place</p>
+        <ol class="chain" aria-label="De G1 à G4, GPUCache en G3.5"><li><b>G1</b><small>HBM</small></li><li><b>G2</b><small>DRAM</small></li><li><b>G3</b><small>NVMe</small></li><li class="is-current"><b>G3.5</b><small>GPUCache</small></li><li><b>G4</b><small>RustFS</small></li></ol>
+        <p class="tier-note">GPUCache est en G3.5 : plus simple à partager qu&#x27;un SSD local au nœud, et plus proche du chemin chaud d&#x27;inférence qu&#x27;un stockage partagé. G4 est tenu par RustFS.</p>
+      </aside>
+    </div>
+  </section>
+  <section class="section section-paper" id="problem">
+    <div class="container split">
+      <div><p class="label">Problème</p><h2>Quand le contexte est évincé, le GPU doit recalculer.</h2></div>
+      <div class="prose"><p>Un long contexte, un dialogue à plusieurs tours et les agents font grossir le KV Cache jusqu&#x27;à ce que la mémoire GPU ne puisse plus le contenir. Quand un KV évincé sert de nouveau, il faut refaire le préremplissage : le GPU dépense des cycles sur un travail déjà fait, et le premier token attend plus longtemps.</p><p>Chaque couche existante a une limite. La mémoire hôte est finie. Un SSD local au nœud ne sert qu&#x27;une machine et se partage mal entre nœuds. Le stockage partagé est fait pour la durabilité et la capacité, et il n&#x27;est pas sur le chemin chaud d&#x27;inférence.</p></div>
+    </div>
+  </section>
+  <section class="section" id="approach">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">Approche</p><h2>Entre G3 et G4, ajouter une couche de KV Cache partagée.</h2></div>
+        <p class="lede">GPUCache est une couche chaude faite pour le KV Cache. Un DPU gère du flash NVMe partagé pour tout le cluster GPU.</p>
+      </div>
+      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Fondé sur un DPU <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></h3><p>Le moteur KV tourne sur les cœurs Arm du DPU et gère le flash directement. Le côté stockage n&#x27;a pas besoin d&#x27;un hôte de stockage x86. La prise en charge de BlueField-3 est en développement.</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>Chemin de données GDS <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></h3><p>Le chemin visé va de la mémoire GPU au flash NVMe en passant par le DPU, sans que le CPU de l&#x27;hôte relaie les données KV. La première étape ouvre le chemin qui passe par la mémoire hôte.</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>Couche chaude seulement. Une perte est un miss.</h3><p>GPUCache ne prend pas en charge la durabilité. Une panne de nœud ou une donnée perdue est un miss net. Le framework d&#x27;inférence recalcule, réécrit, et l&#x27;usage suivant peut toucher. Les données qui doivent rester vont à RustFS en G4.</p></div></li></ol>
+      <div class="doc-block"><h3>Ce qui ne convient pas</h3><ul><li>Des données qui doivent rester. G3.5 est un cache. Les données durables vont sur RustFS en G4.</li><li>Le stockage des checkpoints d&#x27;entraînement. C&#x27;est le travail de G4.</li><li>Un déploiement en production maintenant. La V1 est encore en développement.</li></ul></div>
+    </div>
+  </section>
+  <section class="section section-paper" id="architecture">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">Architecture</p><h2>GPU, DPU et flash, chacun son rôle.</h2></div>
+        <p class="lede">GPUCache place le chemin chaud des données KV entre la carte réseau, le DPU et les SSD. Le schéma ci-dessous est la cible. Chaque composant est en développement.</p>
+      </div>
+      <ol class="path" aria-label="Chemin de données cible, en développement"><li><strong>Mémoire GPU / mémoire hôte</strong></li><li class="via">RDMA / RoCEv2</li><li><strong>DPU</strong><span>Moteur KV Rust</span></li><li class="via">SPDK</li><li><strong>Flash NVMe</strong></li></ol>
+      <p><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p>
+      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Moteur KV Rust <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></h3><p>Un moteur de stockage pour le KV Cache, écrit en Rust, exécuté sur les cœurs Arm du DPU.</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>Transport RDMA / RoCEv2 <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></h3><p>Les nœuds de calcul parlent à G3.5 en RDMA.</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>Gestion du flash par SPDK <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></h3><p>SPDK sur le DPU accède directement aux SSD NVMe.</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>NVIDIA DOCA et compilation croisée Arm <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></h3><p>Construire et exécuter sur BlueField-3.</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>Raccordement aux frameworks d&#x27;inférence <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></h3><p>Raccordement prévu aux interfaces KV Cache de frameworks tels que vLLM et TensorRT-LLM, géré à la granularité de bloc de PagedAttention.</p></div></li></ol>
+      <p class="footnote">Le chemin de données avance en trois étapes : par la mémoire hôte, puis par un relais, puis en accès direct GDS. Seule une combinaison vérifiée sera indiquée comme prenant en charge l&#x27;accès direct GDS. <a href="/fr/docs/architecture/">Notes d&#x27;architecture</a></p>
+    </div>
+  </section>
+  <section class="section" id="roadmap">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">Feuille de route</p><h2>Où en est le travail.</h2></div>
+        <p class="lede">L&#x27;état suit la branche main du dépôt GitHub et change avec cette branche.</p>
+      </div>
+      <div class="table-wrap" tabindex="0">
+        <table>
+          <thead><tr><th scope="col">État</th><th scope="col">Élément</th></tr></thead>
+          <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Dépôt open source créé, sous licence Apache 2.0</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Position du produit et direction d&#x27;architecture : couche G3.5, GDS KVCache fondé sur DPU, et partage entre la couche chaude et RustFS en G4</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Cœur de la V1 : moteur KV en Rust</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Couche de communication RDMA / RoCEv2</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration SPDK, accès direct au NVMe</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration NVIDIA DOCA et compilation croisée Arm, prise en charge de BlueField-3</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Chemin de données : via la mémoire hôte, puis accès direct GDS</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Raccordement aux frameworks d&#x27;inférence (vLLM, TensorRT-LLM)</td></tr></tbody>
+        </table>
+      </div>
+      <p class="footnote"><a href="/fr/docs/roadmap/">Comment lire cette feuille de route</a></p>
+    </div>
+  </section>
+  <section class="section section-paper" id="rustfs">
+    <div class="container split">
+      <div>
+        <p class="label">Avec RustFS</p>
+        <h2>G3.5 garde ce qui est chaud. G4 garde ce qui doit durer.</h2>
+        <div class="actions"><a class="button button-secondary" href="https://rustfs.com" target="_blank" rel="noopener noreferrer">Découvrir RustFS</a></div>
+      </div>
+      <div class="prose"><p>GPUCache est construit par l&#x27;équipe RustFS. Les deux ont un partage clair dans la hiérarchie de stockage. GPUCache est la couche chaude G3.5, proche du GPU et faite pour la réutilisation. RustFS est la couche de capacité G4, un stockage objet distribué compatible S3 écrit en Rust, chargé de garder modèles, jeux de données, historique de session et produits d&#x27;inférence.</p><p>Une couche chaude perdue peut être recalculée. Les données de la couche de capacité ne doivent pas se perdre. Séparer les deux tâches rend chacune plus simple.</p></div>
+    </div>
+  </section>
+  <section class="section" id="quickstart">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">Démarrage <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p><h2>La V1 est encore en développement. Voici ce qui est possible maintenant.</h2></div>
+        <div class="prose"><p>Le cœur V1 de GPUCache est en développement. Il n&#x27;y a pas encore de version installable. Les étapes d&#x27;installation et de déploiement seront écrites ici à la publication de la V1.</p></div>
+      </div>
+      <ol class="steps"><li>Mettre une étoile ou suivre le dépôt sur <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a> pour être prévenu d&#x27;une publication.</li><li>Lire la description d&#x27;architecture dans le <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a>.</li><li>Ouvrir une <a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">issue</a> avec le scénario : framework d&#x27;inférence, longueur de contexte, taille du cluster.</li></ol>
+      <pre data-copy="Copier" data-copied="Copié"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span></code></pre>
+      <p class="footnote">La branche main ne contient pas encore de code applicatif, donc cette page ne donne ni commande de build ni commande d&#x27;exécution. <a href="/fr/docs/quickstart/">Notes de démarrage</a></p>
+    </div>
+  </section>
+  <section class="section section-paper" id="docs">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">Documentation</p><h2>Lire la cible de conception.</h2></div>
+        <p class="lede">Quatre notes couvrent l&#x27;architecture, le modèle de couches, ce qui est réalisé, et ce qui est possible avant une publication.</p>
+      </div>
+      <ul class="doc-links"><li><a href="/fr/docs/architecture/"><strong>Architecture</strong><span>GPU, DPU et flash, et les trois étapes du chemin de données.</span></a></li><li><a href="/fr/docs/tiering/"><strong>Hiérarchie</strong><span>Où se place G3.5 entre G1 et G4.</span></a></li><li><a href="/fr/docs/roadmap/"><strong>Feuille de route</strong><span>Ce qui est réalisé, et ce qui est en développement.</span></a></li><li><a href="/fr/docs/quickstart/"><strong>Démarrage</strong><span>Ce qui est possible avant une publication.</span></a></li></ul>
+    </div>
+  </section>
+  <section class="section cta" id="participate">
+    <div class="container split">
+      <div><p class="label">Participer</p><h2>Construire la couche G3.5 ensemble.</h2></div>
+      <div>
+        <p class="lede">GPUCache accueille les personnes qui connaissent la programmation système en Rust, RDMA/RoCEv2, NVIDIA DOCA et BlueField, la compilation croisée ARM64, et les mécanismes de KV Cache de vLLM et TensorRT-LLM.</p>
+        <div class="actions">
+          <a class="button button-on-dark" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">Participer sur GitHub</a>
+          <a class="button button-secondary" href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Ouvrir une issue</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/fr/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS est une marque de RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Documentation</p>
+      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Projet</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Licence Apache 2.0</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Langue"><li><a href="/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a></li><li><a href="/zh/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

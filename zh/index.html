@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GPUCache｜基于 DPU 的 G3.5 层 KV Cache</title>
+  <meta name="description" content="GPUCache 是 RustFS 打造的基于 DPU 的 GDS KVCache，为 GPU 集群提供 G3.5 层共享 KV Cache 热层。Rust 编写，Apache 2.0 开源，开发中。" />
+  <link rel="canonical" href="https://gpucache.com/zh/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/" />
+  <meta property="og:title" content="GPUCache｜基于 DPU 的 G3.5 层 KV Cache" />
+  <meta property="og:description" content="GPUCache 是 RustFS 打造的基于 DPU 的 GDS KVCache，为 GPU 集群提供 G3.5 层共享 KV Cache 热层。Rust 编写，Apache 2.0 开源，开发中。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/zh/" />
+  <meta property="og:locale" content="zh_CN" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">跳到正文</a>
+<header class="site-header">
+  <a class="brand" href="/zh/" aria-label="RustFS GPUCache 首页">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">菜单</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="页面区块">
+    <a href="/zh/#problem">问题</a><a href="/zh/#approach">方案</a><a href="/zh/#architecture">架构</a><a href="/zh/#roadmap">路线图</a><a href="/zh/#rustfs">与 RustFS</a><a href="/zh/#quickstart">快速开始</a><a href="/zh/docs/">文档</a>
+    <ul class="lang-switch" aria-label="语言"><li><a href="/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="语言"><li><a href="/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="label">RUSTFS GPUCACHE · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p>
+        <h1>G3.5 层的 KV Cache，跑在 DPU 上。</h1>
+        <p class="lede">GPUCache 是基于 DPU 的 GDS KVCache。它把放不进 GPU 显存的 KV Cache 存到 DPU 管理的共享 NVMe 闪存上，需要时回填给 GPU，算过的上下文不用再算一遍。</p>
+        <p class="fine">Rust 编写 · Apache 2.0 开源 · BlueField-3 支持开发中</p>
+        <div class="actions">
+          <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">在 GitHub 关注进展</a>
+          <a class="button button-secondary" href="#architecture">查看架构</a>
+        </div>
+      </div>
+      <aside class="tier-card">
+        <p class="label">位置</p>
+        <ol class="chain" aria-label="G1 到 G4，GPUCache 在 G3.5"><li><b>G1</b><small>HBM</small></li><li><b>G2</b><small>DRAM</small></li><li><b>G3</b><small>NVMe</small></li><li class="is-current"><b>G3.5</b><small>GPUCache</small></li><li><b>G4</b><small>RustFS</small></li></ol>
+        <p class="tier-note">GPUCache 位于 G3.5：比节点本地 SSD 更容易共享，比共享存储更靠近推理热路径。G4 由 RustFS 承担。</p>
+      </aside>
+    </div>
+  </section>
+  <section class="section section-paper" id="problem">
+    <div class="container split">
+      <div><p class="label">问题</p><h2>上下文被逐出，GPU 就得重算。</h2></div>
+      <div class="prose"><p>长上下文、多轮对话和 Agent 让 KV Cache 越来越大，GPU 显存很快就装不下。被逐出的 KV 再被用到时，只能重新做一遍预填充：GPU 算的是已经算过的东西，首 token 也要多等一会儿。</p><p>现有的几层各有局限。主机内存容量有限；节点本地 SSD 只服务一台机器，难以在节点之间共享；共享存储是为持久性和容量设计的，不在推理热路径上。</p></div>
+    </div>
+  </section>
+  <section class="section" id="approach">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">方案</p><h2>在 G3 和 G4 之间，加一层共享的 KV Cache。</h2></div>
+        <p class="lede">GPUCache 是一层专门放 KV Cache 的热层，由 DPU 管理共享 NVMe 闪存，供整个 GPU 集群使用。</p>
+      </div>
+      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>基于 DPU <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>KV 引擎运行在 DPU 的 Arm 核上，直接管理闪存，存储侧不需要 x86 存储主机。BlueField-3 支持开发中。</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>GDS 数据路径 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>目标路径是 GPU 显存经 DPU 直达 NVMe 闪存，KV 数据不经过主机 CPU 转发。第一阶段先打通经主机内存的路径。</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>只做热层，失败即 miss</h3><p>GPUCache 不承担持久性。节点故障或数据丢失时就是一次干净的 miss，推理框架重算后写回，下次即可命中。需要持久保存的数据交给 G4 的 RustFS。</p></div></li></ol>
+      <div class="doc-block"><h3>不适合的场景</h3><ul><li>需要持久保存的数据。G3.5 是缓存，持久数据放 G4 RustFS。</li><li>训练场景的 checkpoint 存储。那是 G4 的工作。</li><li>想现在就部署到生产环境。V1 还在开发中。</li></ul></div>
+    </div>
+  </section>
+  <section class="section section-paper" id="architecture">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">架构</p><h2>GPU、DPU、闪存，各司其职。</h2></div>
+        <p class="lede">GPUCache 把 KV 数据的热路径放在网卡、DPU 和 SSD 之间。下面是设计目标，所有组件均在开发中。</p>
+      </div>
+      <ol class="path" aria-label="设计目标中的数据路径，开发中"><li><strong>GPU 显存 / 主机内存</strong></li><li class="via">RDMA / RoCEv2</li><li><strong>DPU</strong><span>Rust KV 引擎</span></li><li class="via">SPDK</li><li><strong>NVMe 闪存</strong></li></ol>
+      <p><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p>
+      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Rust KV 引擎 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>面向 KV Cache 的存储引擎，用 Rust 编写，运行在 DPU 的 Arm 核上。</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>RDMA / RoCEv2 传输 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>计算节点与 G3.5 之间走 RDMA 通信。</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>SPDK 闪存管理 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>在 DPU 上用 SPDK 直接访问 NVMe SSD。</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>NVIDIA DOCA 与 Arm 交叉编译 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>在 BlueField-3 上构建和运行。</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>推理框架对接 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>计划对接 vLLM、TensorRT-LLM 等推理框架的 KV Cache 接口（按 PagedAttention 的块粒度管理）。</p></div></li></ol>
+      <p class="footnote">数据路径分三级推进：经主机内存 → 暂存 → GDS 直通。只有经过验证的组合才会标为「支持 GDS 直通」。 <a href="/zh/docs/architecture/">架构说明</a></p>
+    </div>
+  </section>
+  <section class="section" id="roadmap">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">路线图</p><h2>现在做到哪一步。</h2></div>
+        <p class="lede">状态以 GitHub 仓库主分支为准，随版本更新。</p>
+      </div>
+      <div class="table-wrap" tabindex="0">
+        <table>
+          <thead><tr><th scope="col">状态</th><th scope="col">事项</th></tr></thead>
+          <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>已实现</span></td><td>开源仓库建立，采用 Apache 2.0 许可</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>已实现</span></td><td>产品定位与架构方向：G3.5 层、基于 DPU 的 GDS KVCache、热层与 G4 RustFS 分工</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>V1 核心：Rust KV 引擎</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>RDMA / RoCEv2 通信层</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>SPDK 集成，直接访问 NVMe</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>NVIDIA DOCA 集成与 Arm 交叉编译，BlueField-3 支持</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>数据路径：经主机内存路径 → GDS 直通</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>推理框架对接（vLLM、TensorRT-LLM）</td></tr></tbody>
+        </table>
+      </div>
+      <p class="footnote"><a href="/zh/docs/roadmap/">怎样读这张路线图</a></p>
+    </div>
+  </section>
+  <section class="section section-paper" id="rustfs">
+    <div class="container split">
+      <div>
+        <p class="label">与 RUSTFS</p>
+        <h2>G3.5 放热的，G4 存久的。</h2>
+        <div class="actions"><a class="button button-secondary" href="https://rustfs.com" target="_blank" rel="noopener noreferrer">了解 RustFS</a></div>
+      </div>
+      <div class="prose"><p>GPUCache 由 RustFS 团队打造。两者在存储分层里分工明确：GPUCache 是 G3.5 热层，追求离 GPU 近、可以复用；RustFS 是 G4 容量层，是用 Rust 编写的 S3 兼容分布式对象存储，负责模型、数据集、会话历史和推理产物的持久保存。</p><p>热层丢了可以重算，容量层的数据不能丢。两件事分开做，各自都更简单。</p></div>
+    </div>
+  </section>
+  <section class="section" id="quickstart">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">快速开始 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p><h2>V1 还在开发，现在可以先做这几件事。</h2></div>
+        <div class="prose"><p>GPUCache 的 V1 核心代码正在开发，暂时没有可安装的版本。安装和部署步骤会随 V1 发布写在这里。</p></div>
+      </div>
+      <ol class="steps"><li>在 <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a> 上 Star 或 Watch 仓库，第一时间收到发布通知。</li><li>阅读 <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a> 里的架构说明。</li><li>在 <a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a> 里提出你的场景和需求，比如推理框架、上下文长度、集群规模。</li></ol>
+      <pre data-copy="复制" data-copied="已复制"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span></code></pre>
+      <p class="footnote">主分支上还没有代码，所以这里不放构建和运行命令。 <a href="/zh/docs/quickstart/">快速开始说明</a></p>
+    </div>
+  </section>
+  <section class="section section-paper" id="docs">
+    <div class="container">
+      <div class="split">
+        <div><p class="label">文档</p><h2>把设计目标写清楚。</h2></div>
+        <p class="lede">四篇说明分别写架构、G1 到 G4 的分层、已实现和开发中的界线，以及发布之前能做的事。</p>
+      </div>
+      <ul class="doc-links"><li><a href="/zh/docs/architecture/"><strong>架构</strong><span>GPU、DPU、闪存，以及三级数据路径。</span></a></li><li><a href="/zh/docs/tiering/"><strong>分层</strong><span>G3.5 在 G1 到 G4 之间的位置。</span></a></li><li><a href="/zh/docs/roadmap/"><strong>路线图</strong><span>哪些已实现，哪些还在开发中。</span></a></li><li><a href="/zh/docs/quickstart/"><strong>快速开始</strong><span>还没有版本时，现在能做的事。</span></a></li></ul>
+    </div>
+  </section>
+  <section class="section cta" id="participate">
+    <div class="container split">
+      <div><p class="label">参与</p><h2>一起把 G3.5 层做出来。</h2></div>
+      <div>
+        <p class="lede">GPUCache 欢迎熟悉 Rust 系统编程、RDMA/RoCEv2、NVIDIA DOCA 与 BlueField、ARM64 交叉编译，以及 vLLM、TensorRT-LLM KV Cache 机制的开发者参与。</p>
+        <div class="actions">
+          <a class="button button-on-dark" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">在 GitHub 参与</a>
+          <a class="button button-secondary" href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">提交 Issue</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/zh/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS 是 RustFS, Inc. 的商标</p>
+    </div>
+    <div>
+      <p class="label">文档</p>
+      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
+    </div>
+    <div>
+      <p class="label">项目</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 许可</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="语言"><li><a href="/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

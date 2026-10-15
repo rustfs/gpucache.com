@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dokumentation | GPUCache</title>
+  <meta name="description" content="GPUCache-Dokumentation: Architektur, Schichten G1 bis G4 mit G3.5, Roadmap und ein Schnellstart, der als in Entwicklung markiert ist." />
+  <link rel="canonical" href="https://gpucache.com/de/docs/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/" />
+  <meta property="og:title" content="Dokumentation | GPUCache" />
+  <meta property="og:description" content="GPUCache-Dokumentation: Architektur, Schichten G1 bis G4 mit G3.5, Roadmap und ein Schnellstart, der als in Entwicklung markiert ist." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/de/docs/" />
+  <meta property="og:locale" content="de_DE" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Zum Inhalt</a>
+<header class="site-header">
+  <a class="brand" href="/de/" aria-label="RustFS GPUCache Startseite">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menü</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Abschnitte">
+    <a href="/de/#problem">Problem</a><a href="/de/#approach">Ansatz</a><a href="/de/#architecture">Architektur</a><a href="/de/#roadmap">Roadmap</a><a href="/de/#rustfs">RustFS</a><a href="/de/#quickstart">Schnellstart</a><a href="/de/docs/" aria-current="page">Dokumentation</a>
+    <ul class="lang-switch" aria-label="Sprache"><li><a href="/docs/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/" hreflang="de" lang="de" aria-current="page" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Sprache"><li><a href="/docs/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/" hreflang="de" lang="de" aria-current="page" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <section class="section">
+    <div class="container">
+      <p class="label">Dokumentation <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></p>
+      <h1>Dokumentation</h1>
+      <p class="lede">Diese Seiten beschreiben das Zielbild. Sie trennen dieses Bild von dem, was heute auf dem main-Branch liegt. GPUCache ist in Entwicklung.</p>
+      <ul class="doc-links"><li><a href="/de/docs/architecture/"><strong>Architektur</strong><span>GPU, DPU und Flash, und die drei Stufen des Datenpfads.</span></a></li><li><a href="/de/docs/tiering/"><strong>Schichten</strong><span>Wo G3.5 zwischen G1 und G4 liegt.</span></a></li><li><a href="/de/docs/roadmap/"><strong>Roadmap</strong><span>Was umgesetzt ist und was in Entwicklung ist.</span></a></li><li><a href="/de/docs/quickstart/"><strong>Schnellstart</strong><span>Was vor einem Release möglich ist.</span></a></li></ul>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/de/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS ist eine Marke von RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Dokumentation</p>
+      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Schichten</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Projekt</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache-2.0-Lizenz</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Sprache"><li><a href="/docs/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/" hreflang="de" lang="de" aria-current="page" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

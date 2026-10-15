@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Architecture | GPUCache</title>
+  <meta name="description" content="Design target for GPUCache: a DPU-based GDS KVCache at G3.5. Every component on this page is in development unless a line says otherwise." />
+  <link rel="canonical" href="https://gpucache.com/docs/architecture/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/architecture/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/architecture/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/architecture/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/architecture/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/architecture/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/architecture/" />
+  <meta property="og:title" content="Architecture | GPUCache" />
+  <meta property="og:description" content="Design target for GPUCache: a DPU-based GDS KVCache at G3.5. Every component on this page is in development unless a line says otherwise." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/docs/architecture/" />
+  <meta property="og:locale" content="en_US" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="RustFS GPUCache home">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
+    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/" aria-current="page">Docs</a>
+    <ul class="lang-switch" aria-label="Language"><li><a href="/docs/architecture/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/architecture/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/architecture/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/architecture/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/architecture/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Language"><li><a href="/docs/architecture/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/architecture/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/architecture/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/architecture/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/architecture/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">Docs</p>
+      <nav aria-label="Docs"><a href="/docs/architecture/" aria-current="page">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/">Roadmap</a><a href="/docs/quickstart/">Quick start</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/docs/">Docs</a> <span aria-hidden="true">/</span> <span>Architecture</span></p>
+<p class="label">Docs <span class="status status-preview"><i aria-hidden="true"></i>In development</span></p>
+<h1>Architecture</h1>
+<p class="lede">GPUCache places the hot path for KV data between the NIC, the DPU, and the SSDs. What follows is the design target.</p>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In development</span><p>BlueField-3 support, the DPU and GDS direct path, and integration with vLLM and TensorRT-LLM are in development.</p></div>
+<div class="doc-block"><h2>What is on the main branch</h2><p>As of 2026-10-15, the main branch of github.com/rustfs/GPUCache contains two files: README.md and LICENSE (Apache 2.0, Copyright RustFS, Inc.). The roadmap checkboxes in that README are unchecked.</p><p>The V1 core is in development in a separate pull request and is not on the main branch. This site marks an item implemented only when it is on main.</p></div>
+<div class="doc-block"><h2>Three roles</h2><ul><li><strong>GPU</strong> Holds the KV used while generating, and asks for KV that has to come back.</li><li><strong>DPU</strong> Runs the Rust KV engine and manages flash. BlueField-3 support is in development.</li><li><strong>Flash</strong> Shared NVMe that holds KV the cluster can reuse.</li></ul></div>
+<div class="doc-block"><h2>Data path</h2><p>The line below is the design target, not a path that is running today. The first stage to open is the one that goes through host memory.</p><ol class="path" aria-label="Design-target data path, in development"><li><strong>GPU memory / host memory</strong></li><li class="via">RDMA / RoCEv2</li><li><strong>DPU</strong><span>Rust KV engine</span></li><li class="via">SPDK</li><li><strong>NVMe flash</strong></li></ol><p><span class="status status-preview"><i aria-hidden="true"></i>In development</span></p></div>
+<div class="doc-block"><h2>Three stages, all in development</h2><ol><li><strong>Host-memory path</strong> KV moves between host DRAM and the DPU and flash. This is the baseline the first stage has to open.</li><li><strong>Staging path</strong> Data in GPU memory is staged once, then handed to the DPU. This is a transitional form, and the staging has to be observable.</li><li><strong>GDS direct</strong> GPU memory reaches flash through the DPU, with no host staging. This is the target shape of GPUCache.</li></ol><p>Public material can call a path GDS direct only after runtime evidence: the direct path was actually taken, there was no fallback and no silent staging, and the bytes and the checksums match at both ends. An interface or a device type is not that evidence.</p></div>
+<div class="doc-block"><h2>Components</h2><ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Rust KV engine <span class="status status-preview"><i aria-hidden="true"></i>In development</span></h3><p>A storage engine for KV Cache, written in Rust, running on the Arm cores of the DPU.</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>RDMA / RoCEv2 transport <span class="status status-preview"><i aria-hidden="true"></i>In development</span></h3><p>Compute nodes talk to G3.5 over RDMA.</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>SPDK flash management <span class="status status-preview"><i aria-hidden="true"></i>In development</span></h3><p>SPDK on the DPU accesses NVMe SSDs directly.</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>NVIDIA DOCA and Arm cross-compilation <span class="status status-preview"><i aria-hidden="true"></i>In development</span></h3><p>Build and run on BlueField-3.</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>Inference framework integration <span class="status status-preview"><i aria-hidden="true"></i>In development</span></h3><p>Planned integration with the KV Cache interfaces of frameworks such as vLLM and TensorRT-LLM, managed at PagedAttention block granularity.</p></div></li></ol></div>
+<div class="doc-block"><h2>Where the CPU sits</h2><p>The storage side does not need an x86 storage host, and the hot path for KV data is not forwarded by the host CPU. Compute nodes still keep a minimum of state: registered memory, submitted requests, and completion events.</p></div>
+<div class="doc-block"><h2>What a loss means</h2><p>GPUCache does not take on durability. When a G3.5 node fails or data is lost, the inference framework gets a miss, prefills again the way it already would, writes the result back to GPUCache, and the next use can hit.</p><p>Context and artifacts that have to be kept go to RustFS at G4. RustFS is the capacity tier. GPUCache is the hot tier.</p></div>
+<div class="doc-block"><h2>Not a fit</h2><ul><li>Data that must be stored durably. G3.5 is a cache. Durable data belongs on RustFS at G4.</li><li>Checkpoint storage for training. That is work for G4.</li><li>A production deployment today. V1 is still in development.</li></ul></div></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS is a trademark of RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Docs</p>
+      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Project</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 license</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Language"><li><a href="/docs/architecture/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/architecture/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/architecture/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/architecture/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/architecture/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>
