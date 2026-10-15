@@ -126,7 +126,6 @@ a { color: inherit; }
   color: var(--ink);
   text-decoration: none;
   font-family: var(--font-display);
-  font-stretch: 112%;
   font-weight: 750;
   letter-spacing: -0.01em;
 }
@@ -247,7 +246,7 @@ a { color: inherit; }
 
 h1, h2, h3, .chain b, .stack-id b, .stack-answer {
   font-family: var(--font-display);
-  font-stretch: 112%;
+  font-stretch: normal;
   text-wrap: balance;
 }
 
@@ -276,7 +275,6 @@ h3 {
 }
 
 .chain b, .stack-id b {
-  font-stretch: 125%;
   font-weight: 800;
   letter-spacing: 0;
 }
@@ -732,7 +730,7 @@ html[lang="ja"] :is(.stack-axes, .stack-id small, .stack-flow, .stack-state, .st
 
 .path strong {
   font-family: var(--font-display);
-  font-stretch: 112%;
+  font-stretch: normal;
   font-size: clamp(18px, 2vw, 24px);
   font-weight: 750;
   line-height: 1.15;
@@ -900,7 +898,7 @@ pre .str { color: var(--syntax-string); }
 
 .doc-links strong {
   font-family: var(--font-display);
-  font-stretch: 112%;
+  font-stretch: normal;
   font-size: var(--text-headline-sm);
   font-weight: 700;
   line-height: 1.2;

@@ -32,8 +32,8 @@ Do not introduce other blues, gradients, glows, or glass.
 
 ## Typography
 
-- Tier numerals in the stack diagram and the docs tier chain: Archivo, width 125%, weight 800.
-- Headlines, including the homepage hero: Archivo at the headline scale, not the display scale. Width 112%, weight 750 (700 on the smallest headline). Hero is `--text-headline-lg` (40px, 32px below 640px), section titles are `--text-headline-md` (30px, 26px below 640px). Line-height 1.15–1.2. Tracking is 0 so the wide cut reads open rather than compressed.
+- Headlines, the brand, tier numerals, and other Archivo display text use normal width (`font-stretch: normal`, 100%). Do not set 112% or 125% on this site: the wide cut reads flat. The webfont request is Archivo weight 700–800 at that normal width, not the 112–125 width range.
+- Headline weight is 750 (700 on the smallest headline). Tier numerals stay at weight 800. Hero is `--text-headline-lg` (40px, 32px below 640px), section titles are `--text-headline-md` (30px, 26px below 640px). Line-height 1.15–1.2. Tracking is 0.
 - Body and UI: Geist 400/500. Body line-height 1.65. Large body and ledes 18px at 1.6.
 - Eyebrows, status, paths, code: Geist Mono, uppercase, 0.08em tracking in Latin. Chinese and Japanese labels use the same mono face with tracking set to 0.
 - Chinese and Japanese: HarmonyOS Sans SC or Source Han Sans SC when installed, otherwise Noto Sans SC / Noto Sans JP from the stylesheet. Half-width space between Han and Latin or digits. Chinese quotation marks are 「」. Headlines use tracking 0 and line-height of at least 1.15.
