@@ -32,9 +32,9 @@ Do not introduce other blues, gradients, glows, or glass.
 
 ## Typography
 
-- Display and the tier numerals: Archivo, width 125%, weight 800.
-- Headlines: Archivo, width 112%, weight 750.
-- Body and UI: Geist.
+- Tier numerals in the stack diagram and the docs tier chain: Archivo, width 125%, weight 800.
+- Headlines, including the homepage hero: Archivo at the headline scale, not the display scale. Width 112%, weight 750 (700 on the smallest headline). Hero is `--text-headline-lg` (40px, 32px below 640px), section titles are `--text-headline-md` (30px, 26px below 640px). Line-height 1.15–1.2. Tracking is 0 so the wide cut reads open rather than compressed.
+- Body and UI: Geist 400/500. Body line-height 1.65. Large body and ledes 18px at 1.6.
 - Eyebrows, status, paths, code: Geist Mono, uppercase, 0.08em tracking in Latin. Chinese and Japanese labels use the same mono face with tracking set to 0.
 - Chinese and Japanese: HarmonyOS Sans SC or Source Han Sans SC when installed, otherwise Noto Sans SC / Noto Sans JP from the stylesheet. Half-width space between Han and Latin or digits. Chinese quotation marks are 「」. Headlines use tracking 0 and line-height of at least 1.15.
 
@@ -47,9 +47,9 @@ Do not introduce other blues, gradients, glows, or glass.
 
 ## Layout
 
-- Content width 1240px. Side gutter at least 16px.
+- Content width 1240px. Side gutter at least 16px. Section padding is 112px, 80px from 640px to 1023px, and 72px below 640px.
 - Sections use a mono label, then a 5/7 split where the page has a headline and a lede.
-- The hero’s structural graphic is the tier chain G1 → G2 → G3 → G3.5 → G4. G3.5 is the Signal block. G4 is RustFS, named in the caption, not drawn as a second product brand.
+- The homepage hero uses that split, then one full-width stack diagram: G1 HBM → G2 DRAM → G3 NVMe (node-local) → G3.5 GPUCache → G4 RustFS. Shard count marks distance from the GPU against shareability. G3.5 is the only Signal fill. It is the shared KV Cache hot tier between GPU memory and object storage. A miss is recomputed, then written back. Durability is named on G4, which is RustFS, not a second product brand. Oxide stays on the in-development marker and does not sit on the Signal row. Below 1024px the diagram stacks under the copy.
 
 ## Copy constraints
 

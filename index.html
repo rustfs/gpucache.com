@@ -44,22 +44,74 @@
 </header>
 <main id="top">
   <section class="hero">
-    <div class="container hero-grid">
-      <div>
-        <p class="label">RustFS GPUCache · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>In development</span></p>
+    <div class="container">
+      <p class="label">RustFS GPUCache · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>In development</span></p>
+      <div class="split hero-intro">
         <h1>KV Cache at the G3.5 tier, running on a DPU.</h1>
-        <p class="lede">GPUCache is a DPU-based GDS KVCache. It stores KV Cache that does not fit in GPU memory on shared NVMe flash managed by a DPU, and fills it back to the GPU when needed, so context that has already been computed does not have to be computed again.</p>
-        <p class="fine">Written in Rust · Apache 2.0 · BlueField-3 support in development</p>
-        <div class="actions">
-          <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">Follow progress on GitHub</a>
-          <a class="button button-secondary" href="#architecture">View the architecture</a>
+        <div>
+          <p class="lede">GPUCache is a DPU-based GDS KVCache. It stores KV Cache that does not fit in GPU memory on shared NVMe flash managed by a DPU, and fills it back to the GPU when needed, so context that has already been computed does not have to be computed again.</p>
+          <p class="fine">Written in Rust · Apache 2.0 · BlueField-3 support in development</p>
+          <div class="actions">
+            <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">Follow progress on GitHub</a>
+            <a class="button button-secondary" href="#architecture">View the architecture</a>
+          </div>
         </div>
       </div>
-      <aside class="tier-card">
-        <p class="label">Position</p>
-        <ol class="chain" aria-label="G1 to G4, with GPUCache at G3.5"><li><b>G1</b><small>HBM</small></li><li><b>G2</b><small>DRAM</small></li><li><b>G3</b><small>NVMe</small></li><li class="is-current"><b>G3.5</b><small>GPUCache</small></li><li><b>G4</b><small>RustFS</small></li></ol>
-        <p class="tier-note">GPUCache sits at G3.5: easier to share than a node-local SSD, and closer to the inference hot path than shared storage. G4 is RustFS.</p>
-      </aside>
+      <figure class="stack">
+        <div class="stack-axes">
+          <span>Closer to the GPU hot path</span>
+          <span>Less shareable</span>
+        </div>
+        <ol class="stack-tiers">
+          <li class="stack-tier">
+            <span class="shards" aria-hidden="true"><i></i></span>
+            <p class="stack-id"><b>G1</b><small>HBM</small></p>
+            <p class="stack-place">GPU memory. Closest to the hot path.</p>
+            <p class="stack-share">Private to one GPU.</p>
+          </li>
+          <li class="stack-tier">
+            <span class="shards" aria-hidden="true"><i></i><i></i></span>
+            <p class="stack-id"><b>G2</b><small>DRAM</small></p>
+            <p class="stack-place">Host memory. Finite.</p>
+            <p class="stack-share">One node.</p>
+          </li>
+          <li class="stack-tier">
+            <span class="shards" aria-hidden="true"><i></i><i></i><i></i></span>
+            <p class="stack-id"><b>G3</b><small>NVMe</small></p>
+            <p class="stack-place">Node-local SSD. One machine.</p>
+            <p class="stack-share">Does not share.</p>
+          </li>
+          <li class="stack-tier is-current">
+            <div class="stack-band">
+              <p class="stack-id"><span class="shard-mark" aria-hidden="true"></span><b>G3.5</b><small>GPUCache</small></p>
+              <p class="stack-place">Shared KV Cache hot tier, on the path between GPU memory and object storage.</p>
+              <div class="stack-meta">
+                <p class="stack-flow">Miss → recompute → write back</p>
+                <p class="stack-state">DPU path in development</p>
+              </div>
+            </div>
+          </li>
+          <li class="stack-tier is-cold">
+            <span class="shards shards-outline" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <p class="stack-id"><b>G4</b><small>RustFS</small></p>
+            <p class="stack-place">Object storage. Cold capacity. Durability lives here.</p>
+            <p class="stack-share">Shared, and too far for the hot path.</p>
+          </li>
+        </ol>
+        <div class="stack-axes">
+          <span>Farther from the hot path</span>
+          <span>Shared</span>
+        </div>
+        <figcaption class="stack-why">
+          <p class="label">Why G3.5</p>
+          <ol class="stack-reasons">
+            <li><span>01</span><p>Context eviction forces a recompute.</p></li>
+            <li><span>02</span><p>A node-local SSD does not share.</p></li>
+            <li><span>03</span><p>G4 is too far for the hot path.</p></li>
+          </ol>
+          <p class="stack-answer"><i aria-hidden="true"></i>G3.5 is the shared layer in between.</p>
+        </figcaption>
+      </figure>
     </div>
   </section>
   <section class="section section-paper" id="problem">

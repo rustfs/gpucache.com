@@ -44,22 +44,74 @@
 </header>
 <main id="top">
   <section class="hero">
-    <div class="container hero-grid">
-      <div>
-        <p class="label">RUSTFS GPUCACHE · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p>
+    <div class="container">
+      <p class="label">RUSTFS GPUCACHE · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p>
+      <div class="split hero-intro">
         <h1>Le KV Cache de la couche G3.5, exécuté sur un DPU.</h1>
-        <p class="lede">GPUCache est un GDS KVCache fondé sur DPU. Il place le KV Cache qui ne tient plus dans la mémoire GPU sur du flash NVMe partagé, géré par un DPU, et le renvoie au GPU quand il faut. Un contexte déjà calculé n&#x27;a pas à être recalculé.</p>
-        <p class="fine">Écrit en Rust · Apache 2.0 · prise en charge de BlueField-3 en développement</p>
-        <div class="actions">
-          <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">Suivre l&#x27;avancement sur GitHub</a>
-          <a class="button button-secondary" href="#architecture">Voir l&#x27;architecture</a>
+        <div>
+          <p class="lede">GPUCache est un GDS KVCache fondé sur DPU. Il place le KV Cache qui ne tient plus dans la mémoire GPU sur du flash NVMe partagé, géré par un DPU, et le renvoie au GPU quand il faut. Un contexte déjà calculé n&#x27;a pas à être recalculé.</p>
+          <p class="fine">Écrit en Rust · Apache 2.0 · prise en charge de BlueField-3 en développement</p>
+          <div class="actions">
+            <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">Suivre l&#x27;avancement sur GitHub</a>
+            <a class="button button-secondary" href="#architecture">Voir l&#x27;architecture</a>
+          </div>
         </div>
       </div>
-      <aside class="tier-card">
-        <p class="label">Place</p>
-        <ol class="chain" aria-label="De G1 à G4, GPUCache en G3.5"><li><b>G1</b><small>HBM</small></li><li><b>G2</b><small>DRAM</small></li><li><b>G3</b><small>NVMe</small></li><li class="is-current"><b>G3.5</b><small>GPUCache</small></li><li><b>G4</b><small>RustFS</small></li></ol>
-        <p class="tier-note">GPUCache est en G3.5 : plus simple à partager qu&#x27;un SSD local au nœud, et plus proche du chemin chaud d&#x27;inférence qu&#x27;un stockage partagé. G4 est tenu par RustFS.</p>
-      </aside>
+      <figure class="stack">
+        <div class="stack-axes">
+          <span>Plus près du chemin chaud GPU</span>
+          <span>Moins partageable</span>
+        </div>
+        <ol class="stack-tiers">
+          <li class="stack-tier">
+            <span class="shards" aria-hidden="true"><i></i></span>
+            <p class="stack-id"><b>G1</b><small>HBM</small></p>
+            <p class="stack-place">Mémoire GPU. Le plus près du chemin chaud.</p>
+            <p class="stack-share">Privée à un GPU.</p>
+          </li>
+          <li class="stack-tier">
+            <span class="shards" aria-hidden="true"><i></i><i></i></span>
+            <p class="stack-id"><b>G2</b><small>DRAM</small></p>
+            <p class="stack-place">Mémoire hôte. Finie.</p>
+            <p class="stack-share">Un nœud.</p>
+          </li>
+          <li class="stack-tier">
+            <span class="shards" aria-hidden="true"><i></i><i></i><i></i></span>
+            <p class="stack-id"><b>G3</b><small>NVMe</small></p>
+            <p class="stack-place">SSD local au nœud. Une machine.</p>
+            <p class="stack-share">Ne se partage pas.</p>
+          </li>
+          <li class="stack-tier is-current">
+            <div class="stack-band">
+              <p class="stack-id"><span class="shard-mark" aria-hidden="true"></span><b>G3.5</b><small>GPUCache</small></p>
+              <p class="stack-place">Couche chaude de KV Cache partagé, sur le chemin entre la mémoire GPU et le stockage objet.</p>
+              <div class="stack-meta">
+                <p class="stack-flow">Miss → recalcul → réécriture</p>
+                <p class="stack-state">Chemin DPU en développement</p>
+              </div>
+            </div>
+          </li>
+          <li class="stack-tier is-cold">
+            <span class="shards shards-outline" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <p class="stack-id"><b>G4</b><small>RustFS</small></p>
+            <p class="stack-place">Stockage objet. Capacité froide. La durabilité est ici.</p>
+            <p class="stack-share">Partagé, et trop loin pour le chemin chaud.</p>
+          </li>
+        </ol>
+        <div class="stack-axes">
+          <span>Plus loin du chemin chaud</span>
+          <span>Partagé</span>
+        </div>
+        <figcaption class="stack-why">
+          <p class="label">Pourquoi G3.5</p>
+          <ol class="stack-reasons">
+            <li><span>01</span><p>Une éviction de contexte force un recalcul.</p></li>
+            <li><span>02</span><p>Un SSD local au nœud ne se partage pas.</p></li>
+            <li><span>03</span><p>G4 est trop loin pour le chemin chaud.</p></li>
+          </ol>
+          <p class="stack-answer"><i aria-hidden="true"></i>G3.5 est la couche partagée entre les deux.</p>
+        </figcaption>
+      </figure>
     </div>
   </section>
   <section class="section section-paper" id="problem">
