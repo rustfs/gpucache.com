@@ -20,7 +20,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
@@ -44,22 +44,74 @@
 </header>
 <main id="top">
   <section class="hero">
-    <div class="container hero-grid">
-      <div>
-        <p class="label">RUSTFS GPUCACHE · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p>
+    <div class="container">
+      <p class="label">RUSTFS GPUCACHE · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p>
+      <div class="split hero-intro">
         <h1>G3.5 层的 KV Cache，跑在 DPU 上。</h1>
-        <p class="lede">GPUCache 是基于 DPU 的 GDS KVCache。它把放不进 GPU 显存的 KV Cache 存到 DPU 管理的共享 NVMe 闪存上，需要时回填给 GPU，算过的上下文不用再算一遍。</p>
-        <p class="fine">Rust 编写 · Apache 2.0 开源 · BlueField-3 支持开发中</p>
-        <div class="actions">
-          <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">在 GitHub 关注进展</a>
-          <a class="button button-secondary" href="#architecture">查看架构</a>
+        <div>
+          <p class="lede">GPUCache 是基于 DPU 的 GDS KVCache。它把放不进 GPU 显存的 KV Cache 存到 DPU 管理的共享 NVMe 闪存上，需要时回填给 GPU，算过的上下文不用再算一遍。</p>
+          <p class="fine">Rust 编写 · Apache 2.0 开源 · BlueField-3 支持开发中</p>
+          <div class="actions">
+            <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">在 GitHub 关注进展</a>
+            <a class="button button-secondary" href="#architecture">查看架构</a>
+          </div>
         </div>
       </div>
-      <aside class="tier-card">
-        <p class="label">位置</p>
-        <ol class="chain" aria-label="G1 到 G4，GPUCache 在 G3.5"><li><b>G1</b><small>HBM</small></li><li><b>G2</b><small>DRAM</small></li><li><b>G3</b><small>NVMe</small></li><li class="is-current"><b>G3.5</b><small>GPUCache</small></li><li><b>G4</b><small>RustFS</small></li></ol>
-        <p class="tier-note">GPUCache 位于 G3.5：比节点本地 SSD 更容易共享，比共享存储更靠近推理热路径。G4 由 RustFS 承担。</p>
-      </aside>
+      <figure class="stack">
+        <div class="stack-axes">
+          <span>更靠近 GPU 热路径</span>
+          <span>更难共享</span>
+        </div>
+        <ol class="stack-tiers">
+          <li class="stack-tier">
+            <span class="shards" aria-hidden="true"><i></i></span>
+            <p class="stack-id"><b>G1</b><small>HBM</small></p>
+            <p class="stack-place">GPU 显存。离热路径最近。</p>
+            <p class="stack-share">只属于一块 GPU。</p>
+          </li>
+          <li class="stack-tier">
+            <span class="shards" aria-hidden="true"><i></i><i></i></span>
+            <p class="stack-id"><b>G2</b><small>DRAM</small></p>
+            <p class="stack-place">主机内存。容量有限。</p>
+            <p class="stack-share">一个节点。</p>
+          </li>
+          <li class="stack-tier">
+            <span class="shards" aria-hidden="true"><i></i><i></i><i></i></span>
+            <p class="stack-id"><b>G3</b><small>NVMe</small></p>
+            <p class="stack-place">节点本地 SSD。只服务一台机器。</p>
+            <p class="stack-share">不能跨节点共享。</p>
+          </li>
+          <li class="stack-tier is-current">
+            <div class="stack-band">
+              <p class="stack-id"><span class="shard-mark" aria-hidden="true"></span><b>G3.5</b><small>GPUCache</small></p>
+              <p class="stack-place">GPU 显存与对象存储之间的共享 KV Cache 热层。</p>
+              <div class="stack-meta">
+                <p class="stack-flow">未命中 → 重算 → 写回</p>
+                <p class="stack-state">DPU 路径开发中</p>
+              </div>
+            </div>
+          </li>
+          <li class="stack-tier is-cold">
+            <span class="shards shards-outline" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <p class="stack-id"><b>G4</b><small>RustFS</small></p>
+            <p class="stack-place">对象存储。冷数据与容量。持久性在这一层。</p>
+            <p class="stack-share">可以共享，但离热路径太远。</p>
+          </li>
+        </ol>
+        <div class="stack-axes">
+          <span>离热路径更远</span>
+          <span>可以共享</span>
+        </div>
+        <figcaption class="stack-why">
+          <p class="label">为何是 G3.5</p>
+          <ol class="stack-reasons">
+            <li><span>01</span><p>上下文被逐出后，只能重算。</p></li>
+            <li><span>02</span><p>节点本地 SSD 不能共享。</p></li>
+            <li><span>03</span><p>G4 离热路径太远。</p></li>
+          </ol>
+          <p class="stack-answer"><i aria-hidden="true"></i>G3.5 是中间那层可共享的热层。</p>
+        </figcaption>
+      </figure>
     </div>
   </section>
   <section class="section section-paper" id="problem">
