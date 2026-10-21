@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>アーキテクチャ｜GPUCache</title>
-  <meta name="description" content="GPUCache の設計目標。G3.5 にある、DPU ベースの GDS KVCache。実装済みと書いた行以外、このページの構成要素は開発中です。" />
+  <meta name="description" content="GPUCache の構成：CPU/TCP の G3.5 共有 KV、有界シャーディング、独立した G4 コールド層。DPU、RDMA、GDS は実機向けの開発目標です。" />
   <link rel="canonical" href="https://gpucache.com/ja/docs/architecture/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/architecture/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/architecture/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/architecture/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/architecture/" />
   <meta property="og:title" content="アーキテクチャ｜GPUCache" />
-  <meta property="og:description" content="GPUCache の設計目標。G3.5 にある、DPU ベースの GDS KVCache。実装済みと書いた行以外、このページの構成要素は開発中です。" />
+  <meta property="og:description" content="GPUCache の構成：CPU/TCP の G3.5 共有 KV、有界シャーディング、独立した G4 コールド層。DPU、RDMA、GDS は実機向けの開発目標です。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/ja/docs/architecture/" />
   <meta property="og:locale" content="ja_JP" />
@@ -46,21 +46,20 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">ドキュメント</p>
-      <nav aria-label="ドキュメント"><a href="/ja/docs/architecture/" aria-current="page">アーキテクチャ</a><a href="/ja/docs/tiering/">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a></nav>
+      <nav aria-label="ドキュメント"><a href="/ja/docs/architecture/" aria-current="page">アーキテクチャ</a><a href="/ja/docs/tiering/">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a><a href="/ja/docs/scaling/">ノード拡張</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/ja/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/ja/docs/">ドキュメント</a> <span aria-hidden="true">/</span> <span>アーキテクチャ</span></p>
-<p class="label">ドキュメント <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></p>
+<p class="label">ドキュメント</p>
 <h1>アーキテクチャ</h1>
-<p class="lede">GPUCache は KV データのホットパスを、NIC、DPU、SSD の間に置きます。以下は設計目標です。</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>開発中</span><p>BlueField-3 対応、DPU と GDS の直通パス、vLLM と TensorRT-LLM との接続は、いずれも開発中です。</p></div>
-<div class="doc-block"><h2>main ブランチにあるもの</h2><p>2026-10-15 時点で、github.com/rustfs/GPUCache の main ブランチにあるファイルは README.md と LICENSE（Apache 2.0、Copyright RustFS, Inc.）の二つです。その README のロードマップ項目は、すべて未完了です。</p><p>V1 コアは別の pull request で開発中であり、main ブランチにはありません。本サイトが「実装済み」と書くのは、その項目が main に入った後だけです。</p></div>
-<div class="doc-block"><h2>三つの役割</h2><ul><li><strong>GPU</strong> 生成中に使う KV を持ち、戻す必要のある KV を取りにいきます。</li><li><strong>DPU</strong> Rust KV エンジンを動かし、フラッシュを管理します。BlueField-3 対応は開発中です。</li><li><strong>フラッシュ</strong> クラスタが再利用できる KV を置く共有 NVMe です。</li></ul></div>
-<div class="doc-block"><h2>データパス</h2><p>下の線は設計目標であり、今日動いている経路ではありません。最初に通すのは、ホストメモリを経由する経路です。</p><ol class="path" aria-label="設計目標のデータパス。開発中"><li><strong>GPU メモリ / ホストメモリ</strong></li><li class="via">RDMA / RoCEv2</li><li><strong>DPU</strong><span>Rust KV エンジン</span></li><li class="via">SPDK</li><li><strong>NVMe フラッシュ</strong></li></ol><p><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></p></div>
-<div class="doc-block"><h2>三段階、すべて開発中</h2><ol><li><strong>ホストメモリ経路</strong> KV はホスト DRAM と、DPU およびフラッシュの間を移動します。これが第一段階で通す基線です。</li><li><strong>一時置きの経路</strong> GPU メモリ上のデータを一度置き、それから DPU に渡します。過渡的な形であり、一時置きは観測できなければなりません。</li><li><strong>GDS 直通</strong> GPU メモリが DPU を経てフラッシュに届き、ホスト側の一時置きはありません。これが GPUCache の目標の形です。</li></ol><p>公開資料が「GDS 直通に対応」と書けるのは、実行時の証拠が取れてからです。直通の経路を実際に通り、フォールバックも黙った一時置きもなく、両端のバイトとチェックサムが一致すること。インターフェースや装置の種類だけでは、その証拠になりません。</p></div>
-<div class="doc-block"><h2>コンポーネント</h2><ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Rust KV エンジン <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>KV Cache 向けのストレージエンジン。Rust で書き、DPU の Arm コアで動かします。</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>RDMA / RoCEv2 転送 <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>計算ノードと G3.5 の間は RDMA で通信します。</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>SPDK によるフラッシュ管理 <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>DPU 上の SPDK で NVMe SSD に直接アクセスします。</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>NVIDIA DOCA と Arm クロスコンパイル <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>BlueField-3 上でビルドし、実行します。</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>推論フレームワークとの接続 <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></h3><p>vLLM や TensorRT-LLM などの KV Cache インターフェースへ接続する予定です。PagedAttention のブロック粒度で管理します。</p></div></li></ol></div>
-<div class="doc-block"><h2>CPU の境界</h2><p>正確な言い方はこうです。ストレージ側に x86 のストレージホストは要らない。KV データのホットパスはホスト CPU が中継しない。計算ノードには、登録メモリ、リクエストの投入、完了イベントの受け取りという最小限の状態が残ります。</p></div>
-<div class="doc-block"><h2>失われたときの意味</h2><p>GPUCache は永続性を持ちません。G3.5 のノードが落ちるかデータが失われると、推論フレームワークが受け取るのは miss です。これまでどおりプレフィルをやり直し、GPUCache に書き戻し、次はヒットできます。</p><p>長く残すコンテキストと成果物は G4 の RustFS に置きます。RustFS が容量層、GPUCache がホット層です。</p></div>
-<div class="doc-block"><h2>向かない用途</h2><ul><li>永続して残すデータ。G3.5 はキャッシュです。永続データは G4 の RustFS に置きます。</li><li>学習のチェックポイント保管。それは G4 の仕事です。</li><li>今すぐ本番へ載せること。V1 はまだ開発中です。</li></ul></div></article>
+<p class="lede">GPUCache は G3.5 の共有 KV ホット層です。現在の実装はホストメモリと TCP を使います。RustFS はホットリクエスト経路から独立した G4 オブジェクト層です。</p>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>開発中</span><p>BlueField-3、GDS、実際の RDMA は開発目標であり、NOT_RUN_HARDWARE です。現在の経路はホストコピーを伴い、ゼロコピーや CPU の迂回を主張しません。</p></div>
+<div class="doc-block"><h2>現在動く経路</h2><p>Rust サービスは TCP 経由で Lookup、Reserve/Put、Commit、Get、Release/Cancel、Invalidate を提供します。MemoryStore と FileStore は CPU バックエンドで、FileStore は通常のファイルを使います。各データ操作で認可を確認しますが、mTLS は実装していません。</p></div>
+<div class="doc-block"><h2>再利用の前に識別情報を確認</h2><p>コミット済みで、テナント、信頼ドメイン、モデル、完全なレイアウト識別情報が適合するブロックだけがヒットになります。プレフィックスヒットは保存済みブロック全体を返し、ブロック内部を暗黙に切り出しません。ミス、タイムアウト、チェックサム不一致では再計算します。</p></div>
+<div class="doc-block"><h2>単一ノードと複数シャード</h2><p>単一プロセスを一つのシャードとして使い、同じクライアント操作で拡張できます。ディレクトリは有界メタデータを持ち、クライアントは経路、接続、再試行記録に上限を設けます。メンバー変更時には処理中の操作をフェンスします。経路の epoch スナップショットは運用者が管理し、自動検出や合意形成は実装していません。</p></div>
+<div class="doc-block"><h2>独立したコールド層</h2><p>G4 は v3 マニフェスト、内容ダイジェストによるキー、完全な識別情報の検証を使います。旧マニフェストはミスとなり、遅延や停止時は Missing を返します。失敗した書き込みも有界クレジットを保持し、PUT の成否が不明でも DELETE しません。mock テストは利用でき、実際の RustFS は NOT_RUN_HARDWARE です。</p></div>
+<div class="doc-block"><h2>DPU の開発目標</h2><p>HostSimulation は型付きメッセージ、キャンセル、障害、明示的なドレインを扱います。rdma-nixl と dpu-bf3 は機器 SDK をリンクせず、デバイスを開く操作は拒否します。aarch64 CPU ビルドは BlueField オフロードではありません。実エンジン統合は未検証で、engine-spike は偽のブロックだけを使います。</p></div>
+<div class="doc-block"><h2>障害時は再計算</h2><p>G3.5 は消失訂正符号や永続性のためのレプリカを追加しません。転送完了が不明なら隔離を維持し、明示的なドレインまたは新しいフェンスで再利用を許可します。コールドデータの永続性は RustFS が担います。これはキャッシュ契約であり、災害復旧や大規模運用の検証ではありません。</p></div>
+<div class="doc-block"><h2>関連ドキュメント</h2><p><a href="/ja/docs/quickstart/">クイックスタート</a> · <a href="/ja/docs/roadmap/">ロードマップ</a> · <a href="/ja/docs/scaling/">スケーリングと導入の境界</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/CPU_COMPLETION.md" target="_blank" rel="noopener noreferrer">CPU_COMPLETION.md</a></p></div><p class="footnote">実 I/O の期限はコールドアダプターが実装します。同期コアは任意にブロックするオブジェクトストア呼び出しを中断できません。</p></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -71,7 +70,7 @@
     </div>
     <div>
       <p class="label">ドキュメント</p>
-      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
+      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li><li><a href="/ja/docs/scaling/">ノード拡張</a></li></ul>
     </div>
     <div>
       <p class="label">プロジェクト</p>

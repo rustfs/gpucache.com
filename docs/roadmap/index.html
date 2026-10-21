@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Roadmap | GPUCache</title>
-  <meta name="description" content="GPUCache roadmap. Implemented means it is on the main branch. The engine, RDMA, SPDK, DOCA, the data path, and framework integration are in development." />
+  <meta name="description" content="GPUCache status: available CPU/TCP, sharding, cold mock and simulation contracts; real engine integration, RDMA, GDS and BlueField-3 remain unqualified." />
   <link rel="canonical" href="https://gpucache.com/docs/roadmap/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/roadmap/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/roadmap/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/roadmap/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/roadmap/" />
   <meta property="og:title" content="Roadmap | GPUCache" />
-  <meta property="og:description" content="GPUCache roadmap. Implemented means it is on the main branch. The engine, RDMA, SPDK, DOCA, the data path, and framework integration are in development." />
+  <meta property="og:description" content="GPUCache status: available CPU/TCP, sharding, cold mock and simulation contracts; real engine integration, RDMA, GDS and BlueField-3 remain unqualified." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/docs/roadmap/" />
   <meta property="og:locale" content="en_US" />
@@ -46,19 +46,16 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Docs</p>
-      <nav aria-label="Docs"><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/" aria-current="page">Roadmap</a><a href="/docs/quickstart/">Quick start</a></nav>
+      <nav aria-label="Docs"><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/" aria-current="page">Roadmap</a><a href="/docs/quickstart/">Quick start</a><a href="/docs/scaling/">Node scaling</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/docs/">Docs</a> <span aria-hidden="true">/</span> <span>Roadmap</span></p>
 <p class="label">Docs</p>
 <h1>Roadmap</h1>
-<p class="lede">Status follows the main branch of the GitHub repository and is updated as that branch changes. This page does not promise a release date or a version number.</p>
-<div class="table-wrap" tabindex="0">
-  <table>
-    <thead><tr><th scope="col">Status</th><th scope="col">Item</th></tr></thead>
-    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>Open-source repository created, under the Apache 2.0 license</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Implemented</span></td><td>Product position and architecture direction: the G3.5 tier, a DPU-based GDS KVCache, and a split between the hot tier and RustFS at G4</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>V1 core: Rust KV engine</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>RDMA / RoCEv2 communication layer</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>SPDK integration, direct NVMe access</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>NVIDIA DOCA integration and Arm cross-compilation, BlueField-3 support</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>Data path: through host memory, then GDS direct</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In development</span></td><td>Inference framework integration (vLLM, TensorRT-LLM)</td></tr></tbody>
-  </table>
-</div>
-<div class="doc-block"><h2>How to read the two states</h2><p>Implemented means the repository exists and the direction is written down. It does not mean a cache is running.</p><p>In development means the work is not on main. The V1 core, the Rust KV engine, is in a separate pull request. A row on this page changes to implemented only after that work is on main.</p><p>As of 2026-10-15 the main branch contains README.md and LICENSE only. Unchecked items in the README are not treated here as capabilities the project already has.</p></div></article>
+<p class="lede">Status separates available source and reproducible CPU contracts from hardware qualification. This roadmap promises neither a release date nor measured fleet capacity.</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th scope="col">Status</th><th scope="col">Capability</th><th scope="col">Boundary</th></tr></thead><tbody><tr><td>CPU/TCP available</td><td>Identity, lifecycle, MemoryStore/FileStore, TCP ACL and reader admission</td><td>Synthetic tests; trusted network boundary, no mTLS.</td></tr><tr><td>CPU/TCP available</td><td>Bounded shard clients, membership updates and epoch fencing</td><td>Operator-managed routing; no distributed consensus or fleet-size certification.</td></tr><tr><td>Mock contract available</td><td>G4 manifest v3, bounded sink, refill and retention</td><td>Live RustFS: NOT_RUN_HARDWARE. Orphan collection is not automatic.</td></tr><tr><td>CPU simulation available</td><td>DPU messages, fault injection and functional TCP comparison</td><td>No device offload, zero-copy, throughput or TCO evidence.</td></tr><tr><td>Fake-block spike available</td><td>EngineBlockContract and engine-spike</td><td>Real vLLM export/import: NOT_RUN_HARDWARE; GPU/model run: NOT_RUN_BUDGET.</td></tr><tr><td>In development</td><td>Real RDMA, GDS, BlueField-3 / DOCA and SPDK</td><td>NOT_RUN_HARDWARE. Optional features remain unlinked and fail closed.</td></tr></tbody></table></div>
+<div class="doc-block"><h2>Next evidence gates</h2><p>Qualify a real engine with authorized GPU/model resources, then measure hardware paths against the appropriate paired baseline. Keep TCO_UNKNOWN and NOT_EVALUATED until that evidence exists. Source availability does not establish an installable release or production readiness.</p></div>
+<div class="doc-block"><h2>Preserved boundaries</h2><p>RustFS remains off the hot path. G3.5 loss leads to recompute; no hot erasure coding or durability replicas are planned. Scaling requires bounded shards, fencing and clean misses, not a verified 10,000-GPU claim.</p></div>
+<div class="doc-block"><h2>Related documentation</h2><p><a href="/docs/quickstart/">Quick start</a> · <a href="/docs/architecture/">Architecture</a> · <a href="/docs/scaling/">Scaling and deployment boundaries</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/CPU_COMPLETION.md" target="_blank" rel="noopener noreferrer">CPU_COMPLETION.md</a></p></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -69,7 +66,7 @@
     </div>
     <div>
       <p class="label">Docs</p>
-      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
+      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li><li><a href="/docs/scaling/">Node scaling</a></li></ul>
     </div>
     <div>
       <p class="label">Project</p>

@@ -46,13 +46,13 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Dokumentation</p>
-      <nav aria-label="Dokumentation"><a href="/de/docs/architecture/">Architektur</a><a href="/de/docs/tiering/" aria-current="page">Schichten</a><a href="/de/docs/roadmap/">Roadmap</a><a href="/de/docs/quickstart/">Schnellstart</a></nav>
+      <nav aria-label="Dokumentation"><a href="/de/docs/architecture/">Architektur</a><a href="/de/docs/tiering/" aria-current="page">Tiering</a><a href="/de/docs/roadmap/">Roadmap</a><a href="/de/docs/quickstart/">Schnellstart</a><a href="/de/docs/scaling/">Knoten skalieren</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/de/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/de/docs/">Dokumentation</a> <span aria-hidden="true">/</span> <span>Schichten</span></p>
 <p class="label">Dokumentation</p>
 <h1>Schichten</h1>
 <p class="lede">Die Namen unten sind die üblichen für die Schichtung von Inferenz-KV-Cache. GPUCache ist G3.5. Es ist kein anderer Name für G4.</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span><p>GPUCache auf G3.5 ist in Entwicklung. Die Tabelle beschreibt den vorgesehenen Platz jeder Schicht.</p></div>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span><p>Aktuell läuft CPU/TCP mit Host-Kopien; FileStore ist das persistente CPU-Referenzbackend. DPU/NVMe/GDS in der Tabelle ist das Zielbild. Reales RDMA, GDS und BlueField-3 bleiben NOT_RUN_HARDWARE. Cold-Tests verwenden einen Mock; live RustFS ist nicht qualifiziert.</p></div>
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">Schicht</th><th scope="col">Medium</th><th scope="col">Bereich</th><th scope="col">Rolle für den KV Cache</th><th scope="col">Produkt</th></tr></thead>
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">Dokumentation</p>
-      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Schichten</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li></ul>
+      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Tiering</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li><li><a href="/de/docs/scaling/">Knoten skalieren</a></li></ul>
     </div>
     <div>
       <p class="label">Projekt</p>

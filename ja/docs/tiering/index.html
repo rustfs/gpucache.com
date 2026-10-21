@@ -46,13 +46,13 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">ドキュメント</p>
-      <nav aria-label="ドキュメント"><a href="/ja/docs/architecture/">アーキテクチャ</a><a href="/ja/docs/tiering/" aria-current="page">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a></nav>
+      <nav aria-label="ドキュメント"><a href="/ja/docs/architecture/">アーキテクチャ</a><a href="/ja/docs/tiering/" aria-current="page">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a><a href="/ja/docs/scaling/">ノード拡張</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/ja/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/ja/docs/">ドキュメント</a> <span aria-hidden="true">/</span> <span>階層</span></p>
 <p class="label">ドキュメント</p>
 <h1>階層</h1>
 <p class="lede">各層の名前は、推論 KV Cache の階層で普通に使う呼び方です。GPUCache は G3.5 です。G4 の別名ではありません。</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>開発中</span><p>G3.5 の GPUCache は開発中です。表は、各層が占める予定の位置を書いています。</p></div>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>開発中</span><p>現在はホストコピーを使う CPU/TCP 実装で、FileStore は CPU 参照バックエンドです。表の DPU/NVMe/GDS は設計目標です。実 RDMA、GDS、BlueField-3 は NOT_RUN_HARDWARE。コールド層は mock テストのみで、実 RustFS 接続は未検証です。</p></div>
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">層</th><th scope="col">媒体</th><th scope="col">範囲</th><th scope="col">KV Cache での役割</th><th scope="col">製品</th></tr></thead>
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">ドキュメント</p>
-      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
+      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li><li><a href="/ja/docs/scaling/">ノード拡張</a></li></ul>
     </div>
     <div>
       <p class="label">プロジェクト</p>

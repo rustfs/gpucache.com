@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>1 ノードから 3、そして 10 ノードへ | GPUCache</title>
+  <meta name="description" content="GPUCache CPU/TCP のノード拡張手順。ルート、epoch、接続上限、検証、ロールバック。" />
+  <link rel="canonical" href="https://gpucache.com/ja/docs/scaling/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/scaling/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/scaling/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/scaling/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/scaling/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/scaling/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/scaling/" />
+  <meta property="og:title" content="1 ノードから 3、そして 10 ノードへ | GPUCache" />
+  <meta property="og:description" content="GPUCache CPU/TCP のノード拡張手順。ルート、epoch、接続上限、検証、ロールバック。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/ja/docs/scaling/" />
+  <meta property="og:locale" content="ja_JP" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">本文へ進む</a>
+<header class="site-header">
+  <a class="brand" href="/ja/" aria-label="RustFS GPUCache ホーム">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">メニュー</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="セクション">
+    <a href="/ja/#problem">課題</a><a href="/ja/#approach">方針</a><a href="/ja/#architecture">アーキテクチャ</a><a href="/ja/#roadmap">ロードマップ</a><a href="/ja/#rustfs">RustFS</a><a href="/ja/#quickstart">クイックスタート</a><a href="/ja/docs/" aria-current="page">ドキュメント</a>
+    <ul class="lang-switch" aria-label="言語"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="言語"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">ドキュメント</p>
+      <nav aria-label="ドキュメント"><a href="/ja/docs/architecture/">アーキテクチャ</a><a href="/ja/docs/tiering/">階層</a><a href="/ja/docs/roadmap/">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a><a href="/ja/docs/scaling/" aria-current="page">ノード拡張</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/ja/">GPUCache</a> / <a href="/ja/docs/">ドキュメント</a> / ノード拡張</p><p class="label">CPU / TCP <span class="status status-preview"><i aria-hidden="true"></i>開発中</span></p><h1>1 ノードから 3、そして 10 ノードへ</h1><p class="lede">単一シャードから始め、同じクライアント API でメンバーを増やします。現在の CPU/TCP 実装では運用側の調整が必要です。サーバー起動だけでは参加できず、すべての ShardedClient に完全なルートスナップショットを配布します。</p><div class="callout"><p>実行例は 1 プロセス内の localhost TCP サーバーを 1、3、10 台に増やす機能検証です。物理 10 台、可用性、GPU 容量、性能の検証ではありません。RDMA / GDS / BlueField-3 / 実エンジンは NOT_RUN_HARDWARE です。</p></div><section class="doc-block"><h2>トポロジー</h2><div class="table-wrap" tabindex="0"><table><thead><tr><th scope="col">段階</th><th scope="col">固定シャード ID</th><th scope="col">アドレス例</th><th scope="col">epoch 条件</th></tr></thead><tbody><tr><td>1 ノード</td><td>0</td><td>10.0.0.11:9735</td><td>実際の初期 epoch E</td></tr><tr><td>3 ノード</td><td>0–2</td><td>10.0.0.11–13:9735</td><td>全ノードが前回の最大 epoch より大きい</td></tr><tr><td>10 ノード</td><td>0–9</td><td>10.0.0.11–20:9735</td><td>全ノードが前回の最大 epoch より大きい</td></tr></tbody></table></div><p>アドレスは例です。実際に到達できるアドレス、独立したデータディレクトリ、安定した一意のシャード ID を使います。ID はクライアント設定です。サーバーに --shard-id、--join、シード探索、クォーラム、複製係数はありません。完全な CacheIdentity の rendezvous hash が所有者を決め、全ノードに複製しません。</p></section>
+<section class="doc-block"><h2>ローカル実行例</h2>
+<p>クイックスタートの準備後、下記ソース版で実行します。例は一時ストアを作成し、旧サーバーの停止と join、全 epoch の更新、完全なルート置換、旧 session の拒否、各シャードの Lookup / Put / Commit / Get / Drained 解放を検証し、最後に一時ディレクトリを削除します。</p><pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-transport --example scaling_smoke
+cargo test -p gpucache-transport --example scaling_smoke</code></pre><p>成功した実行の出力を抜粋します。全出力では各段階の ID 0、0–2、0–9 をすべて検証します。性能測定ではなく、正しさの検証です。</p><pre data-copy="Copy" data-copied="Copied"><code>status=SCALING_SMOKE_OK
+topology=SINGLE_PROCESS_LOCALHOST
+stage_shards=1 store_epoch=1 local_revision=1
+stage_shards=3 store_epoch=2 local_revision=2
+stage_shards=10 store_epoch=3 local_revision=3
+per_shard_roundtrips=14
+stale_sessions=REJECTED
+automatic_payload_migration=NONE
+durability_replication=NONE
+hardware=NOT_RUN_HARDWARE
+performance=NOT_A_PERFORMANCE_RESULT</code></pre></section>
+<section class="doc-block"><h2>1 ノードを起動</h2>
+<p>次のコマンドは単独の FileStore をループバックで起動します。公開のテスト用 fingerprint を実運用に使わず、独自の認証情報とテナントポリシーを設定してください。アプリ側で ShardedClient に ID 0、アドレス、TCP ハンドシェイクの実 epoch を設定し、lease/session API で Put と Commit の所有者を維持します。</p><pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-transport --bin gpucache-tcp -- serve \
+  --data-dir ./data/shard-0 --bind 127.0.0.1:9735 \
+  --tenant 1 --trust 1 \
+  --fingerprint 0000000000000000000000000000000000000000000000000000000000000001</code></pre><p>リモートでは隔離された信頼済みネットワークでのみ --bind 10.0.0.11:9735 --allow-remote などを使います。TLS や暗号学的ピア認証は有効にならず、fingerprint は平文 TCP の bearer 相当資格情報です。CLI はサーバーのみを起動します。</p></section>
+<section class="doc-block"><h2>最初の段階より前にクライアントを設定</h2>
+<p>認証コンテキストと検証済みの初期エンドポイントを用意したアプリコードで、最終構成に必要な上限を設定してクライアントを作成します。replace_routes は ClientLimits を変更しません。次の設定は全段階で最大 10 シャード、各シャード 1 接続を許可します。</p><pre data-copy="Copy" data-copied="Copied"><code>use gpucache_transport::{ClientLimits, ShardedClient};
+
+let limits = ClientLimits {
+    max_shards: 10,
+    max_connections: 10,
+    max_connections_per_shard: 1,
+    max_frame_bytes: 2 * 1024 * 1024,
+    ..ClientLimits::default()
+};
+let client = ShardedClient::new(auth, endpoints, limits)?;</code></pre><p>シャードごとの接続上限の既定値は 4 です。そのまま max_connections だけを 3 にすると無効です。各サーバーの既定上限 16 接続は全クライアントで共有します。各クライアントプロセスには独立したプールがあるため、合計接続数を計画してください。</p><p>CLI サーバーのフレーム本体上限は 2 MiB なので、上の max_frame_bytes も同じ値です。上限はネゴシエーションされません。両端の設定を合わせてください。独立した scaling_smoke 例は、両端で一致するライブラリ既定値 1 MiB を使います。</p><p>新規クライアントのローカル revision は実 store epoch に関係なく 1 から始まります。サーバー切替を調整して完了した後、そのクライアントの現在の revision を読み、完全なスナップショットで client.replace_routes(revision, endpoints) を呼びます。revision はクライアント固有で、store epoch や共有の合意 term ではありません。</p></section>
+<section class="doc-block"><h2>1 から 3 ノードへ</h2><ol><li>新しいシャード ID 1 と 2 を、独立ディレクトリ、同じテナント/trust ポリシー、到達可能なアドレスで準備します。最初の段階より前に選んだクライアント上限を使い、サーバー、pin、バイト、再試行枠も確認します。</li><li>全クライアントを一時停止し、新しい Lookup/Get/Put/Commit を止めます。転送完了を確認して Drained で pin を解放します。期限切れだけでは drain 完了ではありません。未完了の書き込みを完了または取消・隔離し、旧 lease を持ち越しません。</li><li>旧サーバーと全 worker を停止・join するか、読み書きを確実に防ぐ外部 fence を実施します。replace_routes はローカル状態のみを更新し、リモートを隔離しません。隔離を証明できなければ進めません。</li><li>全ディレクトリを排他的に扱い、次回ハンドシェイクの epoch が前回最大値を超えるよう準備します。旧ストアを再起動し、新ストアは必要回数初期化・再オープンします。公開前に実 epoch を確認します。</li><li>ID 0、1、2 の全アドレスと実 epoch を含む完全なスナップショットを作ります。各停止中クライアントで let revision = client.stats().revision; を読み、client.replace_routes(revision, endpoints) を呼びます。拒否を処理し、差分だけを配布しないでください。必要な全クライアントが同じ完全なスナップショットを受理してから再開します。</li><li>切替後の新しい論理要求には新 session を取得します。有効な同一 epoch 内では、generation に続く Commit/Get/Release を元のシャードと epoch に固定し、generation だけの後続処理を再ルーティングしません。fence 済みの処理は破棄し、epoch を書き換えません。再配置された identity は自動移行されず、miss/エラー時は再計算して明示的に書き戻します。任意のコールド復元はホットパス外です。</li></ol><div class="callout"><p>新規 FileStore は epoch 1、既存ディレクトリの再オープンごとに +1 です。--epoch や管理 RPC はありません。前回最大が 1 なら新規 2 台も含め全ノードが 2 以上、7 なら全ノードが 8 以上必要です。例は排他的・有限回の再オープンを行います。実運用にも同等の調整が必要です。MANIFEST を手編集しないでください。</p></div></section>
+<section class="doc-block"><h2>3 から 10 ノードへ</h2>
+<p>ID 0–9 に同じ停止 → drain → fence → epoch 準備 → 全ルート配布 → 検証 → 再開を適用します。全 1 → 全 2 の例なら次は 3 ですが、常に前回実測最大値を基準にします。クライアント作成時に確保した上限を使います。ルート交換では上限を変更できません。テナント、再試行、pin/region、フレーム、メモリ、ディスク上限をシャードごとに計画します。</p><p>クライアントは所有者に直接接続し、ShardDirectory は有界メタデータのみを保持します。所有者喪失は miss であり、複製への切替ではありません。3 台はクォーラムを意味せず、10 台は 1 万 GPU 対応を証明しません。容量・分布は実負荷で測定してください。</p></section>
+<section class="doc-block"><h2>検証とロールバック</h2><ul><li>ソース commit、ID、アドレス、実 epoch、各クライアントの完全スナップショット版を記録し、ID/アドレス重複を拒否します。</li><li>各シャードで Lookup → Put → Commit → Get、バイト一致、Drained 解放を検証し、別テナント/identity は hit しないことを確認します。generation はシャード内限定なので ID と epoch も保持します。</li><li>旧 session/lease が拒否され、旧所有者での未完了書き込みが次期に commit できないことを確認します。所有者停止で miss/timeout → 再計算を確認します。</li><li>統計、drain/quarantine/fence、論理記述子バイトと wire バイト、枠不足、再試行、接続数を観測し、CPU 回帰を実行します。実機検証の代用にはなりません。</li><li>失敗時は停止を維持します。修復、または新たな停止/fence とさらに大きい epoch で旧ノード集合に戻します。旧 epoch、スナップショット、lease は復活させません。ホットデータは再計算可能です。</li></ul><pre data-copy="Copy" data-copied="Copied"><code>python3 scripts/ci/vm_regression.py --profile cpu --offline \
+  --output artifacts/scaling-cpu</code></pre></section>
+<section class="doc-block"><h2>ソース</h2>
+<p>API の基準はリポジトリの手順と実行例です。自動クラスタ管理、オンライン再分割・移行、無停止ローリング更新、実機での本番認定は提供しません。</p><p><a href="https://github.com/rustfs/GPUCache/blob/af5162912b87b24a722004aa61fece93b72fb7cf/docs/SCALING.md">SCALING.md</a> · <a href="https://github.com/rustfs/GPUCache/blob/af5162912b87b24a722004aa61fece93b72fb7cf/crates/transport/examples/scaling_smoke.rs">scaling_smoke.rs</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/OPERATIONS.md">OPERATIONS.md</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/SECURITY.md">SECURITY.md</a></p></section></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/ja/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS は RustFS, Inc. の商標です</p>
+    </div>
+    <div>
+      <p class="label">ドキュメント</p>
+      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li><li><a href="/ja/docs/scaling/">ノード拡張</a></li></ul>
+    </div>
+    <div>
+      <p class="label">プロジェクト</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 ライセンス</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="言語"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-current="page" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

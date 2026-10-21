@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GPUCache｜基于 DPU 的 G3.5 层 KV Cache</title>
-  <meta name="description" content="GPUCache 是 RustFS 打造的基于 DPU 的 GDS KVCache，为 GPU 集群提供 G3.5 层共享 KV Cache 热层。Rust 编写，Apache 2.0 开源，开发中。" />
+  <title>GPUCache | G3.5 共享 KV 缓存</title>
+  <meta name="description" content="GPUCache 架构：基于 CPU/TCP 的 G3.5 共享 KV、有界分片与独立 G4 冷层。DPU、RDMA 和 GDS 仍是硬件目标。" />
   <link rel="canonical" href="https://gpucache.com/zh/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/" />
@@ -12,8 +12,8 @@
   <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/" />
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/" />
-  <meta property="og:title" content="GPUCache｜基于 DPU 的 G3.5 层 KV Cache" />
-  <meta property="og:description" content="GPUCache 是 RustFS 打造的基于 DPU 的 GDS KVCache，为 GPU 集群提供 G3.5 层共享 KV Cache 热层。Rust 编写，Apache 2.0 开源，开发中。" />
+  <meta property="og:title" content="GPUCache | G3.5 共享 KV 缓存" />
+  <meta property="og:description" content="GPUCache 架构：基于 CPU/TCP 的 G3.5 共享 KV、有界分片与独立 G4 冷层。DPU、RDMA 和 GDS 仍是硬件目标。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/zh/" />
   <meta property="og:locale" content="zh_CN" />
@@ -47,9 +47,9 @@
     <div class="container hero-grid">
       <div>
         <p class="label">RUSTFS GPUCACHE · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p>
-        <h1>G3.5 层的 KV Cache，跑在 DPU 上。</h1>
-        <p class="lede">GPUCache 是基于 DPU 的 GDS KVCache。它把放不进 GPU 显存的 KV Cache 存到 DPU 管理的共享 NVMe 闪存上，需要时回填给 GPU，算过的上下文不用再算一遍。</p>
-        <p class="fine">Rust 编写 · Apache 2.0 开源 · BlueField-3 支持开发中</p>
+        <h1>G3.5 层的共享 KV 缓存。</h1>
+        <p class="lede">GPUCache 是 G3.5 共享 KV 热层。当前实现使用主机内存和 TCP；RustFS 是更冷的 G4 对象层，不位于热请求路径中。</p>
+        <p class="fine">Rust · Apache 2.0 · CPU/TCP 源码已可运行</p>
         <div class="actions">
           <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">在 GitHub 关注进展</a>
           <a class="button button-secondary" href="#architecture">查看架构</a>
@@ -71,36 +71,33 @@
   <section class="section" id="approach">
     <div class="container">
       <div class="split">
-        <div><p class="label">方案</p><h2>在 G3 和 G4 之间，加一层共享的 KV Cache。</h2></div>
-        <p class="lede">GPUCache 是一层专门放 KV Cache 的热层，由 DPU 管理共享 NVMe 闪存，供整个 GPU 集群使用。</p>
+        <div><p class="label">方案</p><h2>复用兼容块，未命中时重新计算。</h2></div>
+        <p class="lede">BlueField-3、GDS 和真实 RDMA 仍在开发中，状态为 NOT_RUN_HARDWARE。当前路径包含主机拷贝，不宣称零拷贝或绕过 CPU。</p>
       </div>
-      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>基于 DPU <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>KV 引擎运行在 DPU 的 Arm 核上，直接管理闪存，存储侧不需要 x86 存储主机。BlueField-3 支持开发中。</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>GDS 数据路径 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>目标路径是 GPU 显存经 DPU 直达 NVMe 闪存，KV 数据不经过主机 CPU 转发。第一阶段先打通经主机内存的路径。</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>只做热层，失败即 miss</h3><p>GPUCache 不承担持久性。节点故障或数据丢失时就是一次干净的 miss，推理框架重算后写回，下次即可命中。需要持久保存的数据交给 G4 的 RustFS。</p></div></li></ol>
-      <div class="doc-block"><h3>不适合的场景</h3><ul><li>需要持久保存的数据。G3.5 是缓存，持久数据放 G4 RustFS。</li><li>训练场景的 checkpoint 存储。那是 G4 的工作。</li><li>想现在就部署到生产环境。V1 还在开发中。</li></ul></div>
+      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>当前可运行的路径</h3><p>源码包含 CPU/TCP、内存和普通文件后端，无需 GPU 或 DPU。</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>单节点与多分片</h3><p>有界路由、连接和 epoch fencing 支持由运维方管理的分片。</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>故障意味着重新计算</h3><p>G3.5 不增加纠删码或持久性副本。传输完成状态未知时保持隔离，只有显式排空或更新的 fence 才能允许复用。冷数据持久性归 RustFS；这是缓存契约，不是灾备，也不是集群规模验证。</p></div></li></ol>
+      <div class="doc-block"><h3>不适合的场景</h3><ul><li>需要持久保存的数据。G3.5 是缓存，持久数据放 G4 RustFS。</li><li>训练场景的 checkpoint 存储。那是 G4 的工作。</li><li>尚未完成生产部署验证。</li></ul></div>
     </div>
   </section>
   <section class="section section-paper" id="architecture">
     <div class="container">
       <div class="split">
-        <div><p class="label">架构</p><h2>GPU、DPU、闪存，各司其职。</h2></div>
-        <p class="lede">GPUCache 把 KV 数据的热路径放在网卡、DPU 和 SSD 之间。下面是设计目标，所有组件均在开发中。</p>
+        <div><p class="label">架构</p><h2>当前运行 CPU/TCP，硬件目标独立验证。</h2></div>
+        <p class="lede">GPUCache 是 G3.5 共享 KV 热层。当前实现使用主机内存和 TCP；RustFS 是更冷的 G4 对象层，不位于热请求路径中。</p>
       </div>
-      <ol class="path" aria-label="设计目标中的数据路径，开发中"><li><strong>GPU 显存 / 主机内存</strong></li><li class="via">RDMA / RoCEv2</li><li><strong>DPU</strong><span>Rust KV 引擎</span></li><li class="via">SPDK</li><li><strong>NVMe 闪存</strong></li></ol>
-      <p><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p>
-      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Rust KV 引擎 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>面向 KV Cache 的存储引擎，用 Rust 编写，运行在 DPU 的 Arm 核上。</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>RDMA / RoCEv2 传输 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>计算节点与 G3.5 之间走 RDMA 通信。</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>SPDK 闪存管理 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>在 DPU 上用 SPDK 直接访问 NVMe SSD。</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>NVIDIA DOCA 与 Arm 交叉编译 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>在 BlueField-3 上构建和运行。</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>推理框架对接 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></h3><p>计划对接 vLLM、TensorRT-LLM 等推理框架的 KV Cache 接口（按 PagedAttention 的块粒度管理）。</p></div></li></ol>
-      <p class="footnote">数据路径分三级推进：经主机内存 → 暂存 → GDS 直通。只有经过验证的组合才会标为「支持 GDS 直通」。 <a href="/zh/docs/architecture/">架构说明</a></p>
+      <ol class="path" aria-label="已实现的 CPU/TCP 路径"><li><strong>主机客户端</strong></li><li class="via">TCP</li><li><strong>G3.5 分片</strong><span>Rust</span></li><li class="via">CPU</li><li><strong>主机内存／文件</strong></li></ol>
+      <p><span class="status status-done"><i aria-hidden="true"></i>CPU 契约已可运行</span></p>
+      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>当前可运行的路径</h3><p>源码包含 CPU/TCP、内存和普通文件后端，无需 GPU 或 DPU。</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>先验证身份，再复用</h3><p>只有已提交且完整身份符合预期的块才能命中；未命中时重新计算。</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>单节点与多分片</h3><p>有界路由、连接和 epoch fencing 支持由运维方管理的分片。</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>冷层独立运行</h3><p>RustFS 是 G4，不进入热路径。冷层 mock 契约已有测试；真实 RustFS 为 NOT_RUN_HARDWARE。</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>DPU 目标</h3><p>DPU/GDS/RDMA 仍为 NOT_RUN_HARDWARE。engine-spike 使用伪造块，aarch64 仅提供 CPU 证据。</p></div></li></ol>
+      <p class="footnote">BlueField-3、GDS 和真实 RDMA 仍在开发中，状态为 NOT_RUN_HARDWARE。当前路径包含主机拷贝，不宣称零拷贝或绕过 CPU。 <a href="/zh/docs/architecture/">当前可运行的路径</a></p>
     </div>
   </section>
   <section class="section" id="roadmap">
     <div class="container">
       <div class="split">
         <div><p class="label">路线图</p><h2>现在做到哪一步。</h2></div>
-        <p class="lede">状态以 GitHub 仓库主分支为准，随版本更新。</p>
+        <p class="lede">路线图区分可获取的源码、可复现的 CPU 契约与硬件验证，不承诺发布日期或实测集群容量。</p>
       </div>
       <div class="table-wrap" tabindex="0">
-        <table>
-          <thead><tr><th scope="col">状态</th><th scope="col">事项</th></tr></thead>
-          <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>已实现</span></td><td>开源仓库建立，采用 Apache 2.0 许可</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>已实现</span></td><td>产品定位与架构方向：G3.5 层、基于 DPU 的 GDS KVCache、热层与 G4 RustFS 分工</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>V1 核心：Rust KV 引擎</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>RDMA / RoCEv2 通信层</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>SPDK 集成，直接访问 NVMe</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>NVIDIA DOCA 集成与 Arm 交叉编译，BlueField-3 支持</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>数据路径：经主机内存路径 → GDS 直通</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>推理框架对接（vLLM、TensorRT-LLM）</td></tr></tbody>
-        </table>
+        <table><thead><tr><th scope="col">状态</th><th scope="col">能力</th><th scope="col">边界</th></tr></thead><tbody><tr><td>CPU/TCP 已可运行</td><td>身份、生命周期、MemoryStore/FileStore、TCP ACL 与读取准入</td><td>使用合成数据测试；依赖可信网络边界，未实现 mTLS。</td></tr><tr><td>CPU/TCP 已可运行</td><td>有界分片客户端、成员更新与 epoch fencing</td><td>路由由运维方管理；没有分布式共识或集群规模认证。</td></tr><tr><td>mock 契约已可运行</td><td>G4 v3 清单、有界写入队列、回填与保留策略</td><td>真实 RustFS：NOT_RUN_HARDWARE；孤儿对象不自动回收。</td></tr><tr><td>CPU 模拟已可运行</td><td>DPU 消息、故障注入与 TCP 功能对照</td><td>没有设备卸载、零拷贝、吞吐或 TCO 实证。</td></tr><tr><td>伪造块实验已可运行</td><td>EngineBlockContract 与 engine-spike</td><td>真实 vLLM 导出／导入：NOT_RUN_HARDWARE；GPU／模型运行：NOT_RUN_BUDGET。</td></tr><tr><td>开发中</td><td>真实 RDMA、GDS、BlueField-3 / DOCA 与 SPDK</td><td>NOT_RUN_HARDWARE；可选特性不链接设备，并保持拒绝打开。</td></tr></tbody></table>
       </div>
       <p class="footnote"><a href="/zh/docs/roadmap/">怎样读这张路线图</a></p>
     </div>
@@ -118,21 +115,24 @@
   <section class="section" id="quickstart">
     <div class="container">
       <div class="split">
-        <div><p class="label">快速开始 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p><h2>V1 还在开发，现在可以先做这几件事。</h2></div>
-        <div class="prose"><p>GPUCache 的 V1 核心代码正在开发，暂时没有可安装的版本。安装和部署步骤会随 V1 发布写在这里。</p></div>
+        <div><p class="label">快速开始 <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p><h2>构建、测试并检查 CPU 契约。</h2></div>
+        <div class="prose"><p>主分支已包含可运行的 Rust 代码，实现基于 CPU/TCP 的 G3.5 共享 KV 缓存。先运行软件契约测试，无需 GPU 或 DPU。</p><p>源码已可获取。目前没有可安装的发布版本，也未完成生产部署验证。</p></div>
       </div>
-      <ol class="steps"><li>在 <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a> 上 Star 或 Watch 仓库，第一时间收到发布通知。</li><li>阅读 <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a> 里的架构说明。</li><li>在 <a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a> 里提出你的场景和需求，比如推理框架、上下文长度、集群规模。</li></ol>
-      <pre data-copy="复制" data-copied="已复制"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span></code></pre>
-      <p class="footnote">主分支上还没有代码，所以这里不放构建和运行命令。 <a href="/zh/docs/quickstart/">快速开始说明</a></p>
+      <ol class="steps"><li>安装稳定版 Rust 与 Cargo、Git 和 Python 3。</li><li>克隆源码并运行工作区测试。</li><li>按完整快速开始运行演示与 CPU 回归。</li></ol>
+      <pre data-copy="复制" data-copied="已复制"><code>git clone https://github.com/rustfs/GPUCache.git
+cd GPUCache
+cargo test --workspace --all-targets
+cargo run -p gpucache-transport --bin share-demo</code></pre>
+      <p class="footnote">完整快速开始包含 CPU 回归命令和明确的硬件限制。 <a href="/zh/docs/quickstart/">从源码构建和测试</a></p>
     </div>
   </section>
   <section class="section section-paper" id="docs">
     <div class="container">
       <div class="split">
-        <div><p class="label">文档</p><h2>把设计目标写清楚。</h2></div>
-        <p class="lede">四篇说明分别写架构、G1 到 G4 的分层、已实现和开发中的界线，以及发布之前能做的事。</p>
+        <div><p class="label">文档</p><h2>了解当前实现与验证边界。</h2></div>
+        <p class="lede">架构、分层、状态、源码命令和扩展指南分别说明 CPU 契约与尚未验证的硬件目标。</p>
       </div>
-      <ul class="doc-links"><li><a href="/zh/docs/architecture/"><strong>架构</strong><span>GPU、DPU、闪存，以及三级数据路径。</span></a></li><li><a href="/zh/docs/tiering/"><strong>分层</strong><span>G3.5 在 G1 到 G4 之间的位置。</span></a></li><li><a href="/zh/docs/roadmap/"><strong>路线图</strong><span>哪些已实现，哪些还在开发中。</span></a></li><li><a href="/zh/docs/quickstart/"><strong>快速开始</strong><span>还没有版本时，现在能做的事。</span></a></li></ul>
+      <ul class="doc-links"><li><a href="/zh/docs/architecture/"><strong>架构</strong><span>CPU/TCP、分片和独立冷层。</span></a></li><li><a href="/zh/docs/tiering/"><strong>分层</strong><span>G3.5 在 G1 到 G4 之间的位置。</span></a></li><li><a href="/zh/docs/roadmap/"><strong>路线图</strong><span>可用软件与后续证据要求。</span></a></li><li><a href="/zh/docs/quickstart/"><strong>快速开始</strong><span>构建、测试并运行合成数据演示。</span></a></li><li><a href="/zh/docs/scaling/"><strong>节点扩容</strong><span>从 1 到 3 到 10 个节点：epoch、完整路由与验收。</span></a></li></ul>
     </div>
   </section>
   <section class="section cta" id="participate">
@@ -156,7 +156,7 @@
     </div>
     <div>
       <p class="label">文档</p>
-      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
+      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li><li><a href="/zh/docs/scaling/">节点扩容</a></li></ul>
     </div>
     <div>
       <p class="label">项目</p>

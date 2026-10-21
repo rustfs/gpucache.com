@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Roadmap | GPUCache</title>
-  <meta name="description" content="Roadmap von GPUCache. Umgesetzt heißt: auf dem main-Branch. Engine, RDMA, SPDK, DOCA, Datenpfad und Framework-Anbindung sind in Entwicklung." />
+  <meta name="description" content="GPUCache-Status: CPU/TCP, Sharding, Cold-Mock und Simulationsverträge sind verfügbar. Echte Engine-Integration, RDMA, GDS und BlueField-3 bleiben unqualifiziert." />
   <link rel="canonical" href="https://gpucache.com/de/docs/roadmap/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/roadmap/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/roadmap/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/roadmap/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/roadmap/" />
   <meta property="og:title" content="Roadmap | GPUCache" />
-  <meta property="og:description" content="Roadmap von GPUCache. Umgesetzt heißt: auf dem main-Branch. Engine, RDMA, SPDK, DOCA, Datenpfad und Framework-Anbindung sind in Entwicklung." />
+  <meta property="og:description" content="GPUCache-Status: CPU/TCP, Sharding, Cold-Mock und Simulationsverträge sind verfügbar. Echte Engine-Integration, RDMA, GDS und BlueField-3 bleiben unqualifiziert." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/de/docs/roadmap/" />
   <meta property="og:locale" content="de_DE" />
@@ -46,19 +46,16 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Dokumentation</p>
-      <nav aria-label="Dokumentation"><a href="/de/docs/architecture/">Architektur</a><a href="/de/docs/tiering/">Schichten</a><a href="/de/docs/roadmap/" aria-current="page">Roadmap</a><a href="/de/docs/quickstart/">Schnellstart</a></nav>
+      <nav aria-label="Dokumentation"><a href="/de/docs/architecture/">Architektur</a><a href="/de/docs/tiering/">Tiering</a><a href="/de/docs/roadmap/" aria-current="page">Roadmap</a><a href="/de/docs/quickstart/">Schnellstart</a><a href="/de/docs/scaling/">Knoten skalieren</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/de/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/de/docs/">Dokumentation</a> <span aria-hidden="true">/</span> <span>Roadmap</span></p>
 <p class="label">Dokumentation</p>
 <h1>Roadmap</h1>
-<p class="lede">Der Status folgt dem main-Branch des GitHub-Repositorys und wird mit diesem Branch aktualisiert. Diese Seite verspricht weder ein Veröffentlichungsdatum noch eine Versionsnummer.</p>
-<div class="table-wrap" tabindex="0">
-  <table>
-    <thead><tr><th scope="col">Status</th><th scope="col">Punkt</th></tr></thead>
-    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Umgesetzt</span></td><td>Open-Source-Repository angelegt, unter der Apache-2.0-Lizenz</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Umgesetzt</span></td><td>Produktposition und Architekturrichtung: Schicht G3.5, ein DPU-basiertes GDS-KVCache, und die Trennung zwischen der heißen Schicht und RustFS auf G4</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>V1-Kern: Rust-KV-Engine</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>RDMA- / RoCEv2-Kommunikationsschicht</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>SPDK-Integration, direkter NVMe-Zugriff</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>NVIDIA-DOCA-Integration und Arm-Cross-Kompilierung, BlueField-3-Unterstützung</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>Datenpfad: über den Host-Speicher, danach GDS-Direktweg</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>Anbindung an Inferenz-Frameworks (vLLM, TensorRT-LLM)</td></tr></tbody>
-  </table>
-</div>
-<div class="doc-block"><h2>Wie die zwei Zustände zu lesen sind</h2><p>Umgesetzt heißt: Das Repository existiert und die Richtung ist aufgeschrieben. Es heißt nicht, dass ein Cache läuft.</p><p>In Entwicklung heißt: Die Arbeit liegt nicht auf main. Der V1-Kern, die Rust-KV-Engine, liegt in einem separaten Pull Request. Eine Zeile auf dieser Seite wird erst umgesetzt, wenn diese Arbeit auf main liegt.</p><p>Stand 2026-10-15 enthält der main-Branch nur README.md und LICENSE. Nicht abgehakte Punkte in der README gelten hier nicht als Fähigkeiten, die das Projekt schon hat.</p></div></article>
+<p class="lede">Der Status unterscheidet verfügbaren Quellcode und reproduzierbare CPU-Verträge von Hardwarequalifikation. Er verspricht weder einen Veröffentlichungstermin noch gemessene Flottenkapazität.</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th scope="col">Status</th><th scope="col">Funktion</th><th scope="col">Grenze</th></tr></thead><tbody><tr><td>CPU/TCP verfügbar</td><td>Identität, Lebenszyklus, MemoryStore/FileStore, TCP-ACL und Lesezulassung</td><td>Synthetische Tests; vertrauenswürdige Netzwerkgrenze, kein mTLS.</td></tr><tr><td>CPU/TCP verfügbar</td><td>Begrenzte Shard-Clients, Mitgliedschaft und Epoch-Fencing</td><td>Betreiberverwaltete Routen; kein verteilter Konsens und keine Größenqualifikation.</td></tr><tr><td>Mock-Vertrag verfügbar</td><td>G4-Manifest v3, begrenzte Queue, Refill und Aufbewahrung</td><td>Live-RustFS: NOT_RUN_HARDWARE. Verwaiste Objekte werden nicht automatisch gesammelt.</td></tr><tr><td>CPU-Simulation verfügbar</td><td>DPU-Nachrichten, Fehlerinjektion und funktionaler TCP-Vergleich</td><td>Kein Beleg für Geräte-Offload, Zero-Copy, Durchsatz oder TCO.</td></tr><tr><td>Versuch mit künstlichen Blöcken</td><td>EngineBlockContract und engine-spike</td><td>Echter vLLM-Export/Import: NOT_RUN_HARDWARE; GPU-/Modelllauf: NOT_RUN_BUDGET.</td></tr><tr><td>In Entwicklung</td><td>Echtes RDMA, GDS, BlueField-3 / DOCA und SPDK</td><td>NOT_RUN_HARDWARE. Optionale Features bleiben ohne Geräteanbindung und verweigern das Öffnen.</td></tr></tbody></table></div>
+<div class="doc-block"><h2>Die nächsten Nachweise</h2><p>Zuerst eine echte Engine mit genehmigten GPU-/Modellressourcen qualifizieren, dann Hardwarepfade mit geeigneten Vergleichsläufen messen. Bis dahin bleiben TCO_UNKNOWN und NOT_EVALUATED bestehen. Verfügbarer Quellcode bedeutet weder eine installierbare Veröffentlichung noch Produktionsreife.</p></div>
+<div class="doc-block"><h2>Unveränderte Grenzen</h2><p>RustFS bleibt außerhalb des heißen Pfads. G3.5-Verlust führt zur Neuberechnung; Hot-Erasure-Coding und dauerhafte Replikate sind nicht geplant. Skalierung benötigt begrenzte Shards, Fencing und saubere Misses, keine unbewiesene Zusage für 10.000 GPUs.</p></div>
+<div class="doc-block"><h2>Weitere Dokumentation</h2><p><a href="/de/docs/quickstart/">Schnellstart</a> · <a href="/de/docs/architecture/">Architektur</a> · <a href="/de/docs/scaling/">Skalierung und Einsatzgrenzen</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/CPU_COMPLETION.md" target="_blank" rel="noopener noreferrer">CPU_COMPLETION.md</a></p></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -69,7 +66,7 @@
     </div>
     <div>
       <p class="label">Dokumentation</p>
-      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Schichten</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li></ul>
+      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Tiering</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li><li><a href="/de/docs/scaling/">Knoten skalieren</a></li></ul>
     </div>
     <div>
       <p class="label">Projekt</p>

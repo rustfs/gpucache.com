@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Démarrage | GPUCache</title>
-  <meta name="description" content="Démarrage de GPUCache. La V1 est en développement. Il n&#x27;y a pas de version installable. La seule commande de cette page est git clone." />
+  <meta name="description" content="Compiler les sources CPU/TCP de GPUCache, exécuter des démonstrations synthétiques et reproduire la régression CPU. Le matériel et les moteurs réels restent non qualifiés." />
   <link rel="canonical" href="https://gpucache.com/fr/docs/quickstart/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/quickstart/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/quickstart/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/quickstart/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/quickstart/" />
   <meta property="og:title" content="Démarrage | GPUCache" />
-  <meta property="og:description" content="Démarrage de GPUCache. La V1 est en développement. Il n&#x27;y a pas de version installable. La seule commande de cette page est git clone." />
+  <meta property="og:description" content="Compiler les sources CPU/TCP de GPUCache, exécuter des démonstrations synthétiques et reproduire la régression CPU. Le matériel et les moteurs réels restent non qualifiés." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/fr/docs/quickstart/" />
   <meta property="og:locale" content="fr_FR" />
@@ -46,18 +46,25 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Documentation</p>
-      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/">Hiérarchie</a><a href="/fr/docs/roadmap/">Feuille de route</a><a href="/fr/docs/quickstart/" aria-current="page">Démarrage</a></nav>
+      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/">Niveaux</a><a href="/fr/docs/roadmap/">Feuille de route</a><a href="/fr/docs/quickstart/" aria-current="page">Démarrage rapide</a><a href="/fr/docs/scaling/">Ajouter des nœuds</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/fr/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/fr/docs/">Documentation</a> <span aria-hidden="true">/</span> <span>Démarrage</span></p>
-<p class="label">Démarrage <span class="status status-preview"><i aria-hidden="true"></i>En développement</span></p>
+<p class="label">Documentation</p>
 <h1>Démarrage</h1>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>En développement</span><p>Il n&#x27;y a pas de version installable. Ne lisez pas cette page comme un guide de déploiement.</p></div>
-<p class="lede">Le cœur V1 de GPUCache est en développement dans une pull request séparée et n&#x27;est pas sur la branche main. Les étapes d&#x27;installation et de déploiement seront écrites ici à la publication de la V1.</p>
-<ol class="steps"><li>Mettre une étoile ou suivre le dépôt sur <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a> pour être prévenu d&#x27;une publication.</li><li>Lire la description d&#x27;architecture dans le <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a>.</li><li>Ouvrir une <a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">issue</a> avec le scénario : framework d&#x27;inférence, longueur de contexte, taille du cluster.</li></ol>
-<pre data-copy="Copier" data-copied="Copié"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span></code></pre>
-<p class="footnote">La branche main ne contient pas encore de code applicatif, donc cette page ne donne ni commande de build ni commande d&#x27;exécution.</p>
-<div class="doc-block"><h2>Ce qui n&#x27;est pas encore là</h2><ul><li>Pas de paquet installable.</li><li>Pas d&#x27;instructions de build.</li><li>Pas d&#x27;instructions d&#x27;exécution.</li><li>Pas de guide de déploiement.</li></ul></div>
-<div class="doc-block"><h2>Notes liées</h2><p><a href="/fr/docs/architecture/">Architecture</a> · <a href="/fr/docs/roadmap/">Feuille de route</a></p></div></article>
+<p class="lede">La branche main contient du code Rust exécutable pour le cache KV partagé G3.5 sur CPU/TCP. Commencez par les tests de contrat logiciel ; aucun GPU ni DPU n’est nécessaire.</p>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>En développement</span><p>Le code source est disponible. Il n’existe pas encore de version installable ni de qualification pour la production.</p></div>
+<div class="doc-block"><h2>Compiler et tester depuis les sources</h2><p>Prévoyez Rust stable avec Cargo, Git et Python 3. Le premier lancement nécessite le téléchargement des dépendances. Les tests utilisent des blocs KV synthétiques, pas les sorties d’un modèle d’inférence.</p><pre data-copy="Copier" data-copied="Copié"><code>git clone https://github.com/rustfs/GPUCache.git
+cd GPUCache
+cargo test --workspace --all-targets</code></pre></div>
+<div class="doc-block"><h2>Exécuter les démonstrations CPU</h2><p>Exécutez ces commandes sans endpoint ni identifiants GPUCACHE_RUSTFS_*. La démonstration cold utilise le mock par défaut et ne valide pas un service RustFS réel.</p><pre data-copy="Copier" data-copied="Copié"><code>cargo run -p gpucache-transport --bin share-demo
+cargo run -p gpucache-transport --bin shard-demo
+cargo run -p gpucache-cold --bin cold-demo
+cargo run -p gpucache-storage --bin engine-spike
+cargo run -p gpucache-dpu --bin dpu-demo</code></pre><p>Les marqueurs attendus sont REUSE_OK, SHARD_OK, COLD_CONTRACT_OK, FAKE_BLOCK_CONTRACT_OK et DPU_CONTRACT_OK. L’essai moteur vérifie des blocs entiers factices ; la démonstration DPU est une simulation sur l’hôte. Ces marqueurs ne prouvent pas l’exécution d’un moteur ou d’un périphérique réel.</p></div>
+<div class="doc-block"><h2>Reproduire la régression CPU complète</h2><p>Le script vérifie le formatage, les dépendances, Clippy, les tests, les fonctionnalités optionnelles et les démonstrations. Il désactive RustFS réel et enregistre summary.md, results.json, JUnit et les journaux. Utilisez un nouveau répertoire de sortie à chaque lancement ; --offline exige des dépendances déjà téléchargées.</p><pre data-copy="Copier" data-copied="Copié"><code>cargo fetch --locked
+python3 scripts/ci/vm_regression.py --profile cpu --offline --output artifacts/cpu-docs</code></pre></div>
+<div class="doc-block"><h2>Ce que ces vérifications ne qualifient pas</h2><p>L’export/import vLLM réel, RDMA, GDS et BlueField-3 restent NOT_RUN_HARDWARE ; l’exécution GPU/modèle reste NOT_RUN_BUDGET. Aucun chemin zéro copie actif, résultat de performance matériel ou réplica durable du niveau chaud n’en découle.</p></div>
+<div class="doc-block"><h2>Documentation associée</h2><p><a href="/fr/docs/architecture/">Architecture</a> · <a href="/fr/docs/roadmap/">Feuille de route</a> · <a href="/fr/docs/scaling/">Mise à l’échelle et limites de déploiement</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/CPU_COMPLETION.md" target="_blank" rel="noopener noreferrer">CPU_COMPLETION.md</a></p></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -68,7 +75,7 @@
     </div>
     <div>
       <p class="label">Documentation</p>
-      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
+      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Niveaux</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage rapide</a></li><li><a href="/fr/docs/scaling/">Ajouter des nœuds</a></li></ul>
     </div>
     <div>
       <p class="label">Projet</p>

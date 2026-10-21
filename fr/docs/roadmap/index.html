@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Feuille de route | GPUCache</title>
-  <meta name="description" content="Feuille de route de GPUCache. Réalisé veut dire présent sur la branche main. Le moteur, RDMA, SPDK, DOCA, le chemin de données et le raccordement aux frameworks sont en développement." />
+  <meta name="description" content="État de GPUCache : CPU/TCP, shards, mock froid et contrats de simulation disponibles. Intégration moteur réelle, RDMA, GDS et BlueField-3 non qualifiés." />
   <link rel="canonical" href="https://gpucache.com/fr/docs/roadmap/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/roadmap/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/roadmap/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/roadmap/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/roadmap/" />
   <meta property="og:title" content="Feuille de route | GPUCache" />
-  <meta property="og:description" content="Feuille de route de GPUCache. Réalisé veut dire présent sur la branche main. Le moteur, RDMA, SPDK, DOCA, le chemin de données et le raccordement aux frameworks sont en développement." />
+  <meta property="og:description" content="État de GPUCache : CPU/TCP, shards, mock froid et contrats de simulation disponibles. Intégration moteur réelle, RDMA, GDS et BlueField-3 non qualifiés." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/fr/docs/roadmap/" />
   <meta property="og:locale" content="fr_FR" />
@@ -46,19 +46,16 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Documentation</p>
-      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/">Hiérarchie</a><a href="/fr/docs/roadmap/" aria-current="page">Feuille de route</a><a href="/fr/docs/quickstart/">Démarrage</a></nav>
+      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/">Niveaux</a><a href="/fr/docs/roadmap/" aria-current="page">Feuille de route</a><a href="/fr/docs/quickstart/">Démarrage rapide</a><a href="/fr/docs/scaling/">Ajouter des nœuds</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/fr/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/fr/docs/">Documentation</a> <span aria-hidden="true">/</span> <span>Feuille de route</span></p>
 <p class="label">Documentation</p>
 <h1>Feuille de route</h1>
-<p class="lede">L&#x27;état suit la branche main du dépôt GitHub et change avec cette branche. Cette page ne promet ni une date de publication ni un numéro de version.</p>
-<div class="table-wrap" tabindex="0">
-  <table>
-    <thead><tr><th scope="col">État</th><th scope="col">Élément</th></tr></thead>
-    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Dépôt open source créé, sous licence Apache 2.0</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Réalisé</span></td><td>Position du produit et direction d&#x27;architecture : couche G3.5, GDS KVCache fondé sur DPU, et partage entre la couche chaude et RustFS en G4</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Cœur de la V1 : moteur KV en Rust</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Couche de communication RDMA / RoCEv2</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration SPDK, accès direct au NVMe</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Intégration NVIDIA DOCA et compilation croisée Arm, prise en charge de BlueField-3</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Chemin de données : via la mémoire hôte, puis accès direct GDS</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>En développement</span></td><td>Raccordement aux frameworks d&#x27;inférence (vLLM, TensorRT-LLM)</td></tr></tbody>
-  </table>
-</div>
-<div class="doc-block"><h2>Comment lire les deux états</h2><p>Réalisé veut dire que le dépôt existe et que la direction est écrite. Cela ne veut pas dire qu&#x27;un cache tourne.</p><p>En développement veut dire que le travail n&#x27;est pas sur main. Le cœur de la V1, le moteur KV en Rust, est dans une pull request séparée. Une ligne de cette page passe à réalisé seulement quand ce travail est sur main.</p><p>Au 2026-10-15, la branche main ne contient que README.md et LICENSE. Les éléments non cochés du README ne sont pas traités ici comme des capacités que le projet a déjà.</p></div></article>
+<p class="lede">L’état distingue le code disponible et les contrats CPU reproductibles de la qualification matérielle. Aucune date de sortie ni capacité de flotte mesurée n’est promise.</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th scope="col">État</th><th scope="col">Fonctionnalité</th><th scope="col">Limite</th></tr></thead><tbody><tr><td>CPU/TCP disponible</td><td>Identité, cycle de vie, MemoryStore/FileStore, ACL TCP et admission des lectures</td><td>Tests synthétiques ; réseau de confiance requis, sans mTLS.</td></tr><tr><td>CPU/TCP disponible</td><td>Clients de shards bornés, mise à jour des membres et fencing des epochs</td><td>Routage géré par l’opérateur ; ni consensus distribué ni certification de taille.</td></tr><tr><td>Contrat mock disponible</td><td>Manifeste G4 v3, file bornée, recharge et rétention</td><td>RustFS réel : NOT_RUN_HARDWARE. La collecte d’objets orphelins n’est pas automatique.</td></tr><tr><td>Simulation CPU disponible</td><td>Messages DPU, injection de pannes et comparaison fonctionnelle TCP</td><td>Aucune preuve d’offload matériel, de zéro copie, de débit ou de TCO.</td></tr><tr><td>Essai sur blocs factices</td><td>EngineBlockContract et engine-spike</td><td>Export/import vLLM réel : NOT_RUN_HARDWARE ; exécution GPU/modèle : NOT_RUN_BUDGET.</td></tr><tr><td>En développement</td><td>RDMA réel, GDS, BlueField-3 / DOCA et SPDK</td><td>NOT_RUN_HARDWARE. Les fonctionnalités optionnelles restent non liées et refusent l’ouverture.</td></tr></tbody></table></div>
+<div class="doc-block"><h2>Les prochaines preuves à produire</h2><p>Qualifier un moteur réel avec des ressources GPU/modèle autorisées, puis mesurer les chemins matériels face à une référence adaptée. Conserver TCO_UNKNOWN et NOT_EVALUATED jusque-là. Un code source disponible ne constitue ni une version installable ni une garantie de production.</p></div>
+<div class="doc-block"><h2>Les limites conservées</h2><p>RustFS reste hors du chemin chaud. Une perte G3.5 entraîne un recalcul ; aucun codage d’effacement ni réplica durable du niveau chaud n’est prévu. La montée en charge repose sur des shards bornés, le fencing et des misses propres, sans prétendre avoir validé 10 000 GPU.</p></div>
+<div class="doc-block"><h2>Documentation associée</h2><p><a href="/fr/docs/quickstart/">Démarrage</a> · <a href="/fr/docs/architecture/">Architecture</a> · <a href="/fr/docs/scaling/">Mise à l’échelle et limites de déploiement</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/CPU_COMPLETION.md" target="_blank" rel="noopener noreferrer">CPU_COMPLETION.md</a></p></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -69,7 +66,7 @@
     </div>
     <div>
       <p class="label">Documentation</p>
-      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
+      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Niveaux</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage rapide</a></li><li><a href="/fr/docs/scaling/">Ajouter des nœuds</a></li></ul>
     </div>
     <div>
       <p class="label">Projet</p>

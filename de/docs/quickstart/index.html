@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Schnellstart | GPUCache</title>
-  <meta name="description" content="Schnellstart für GPUCache. V1 ist in Entwicklung. Es gibt kein installierbares Release. Der einzige Befehl auf dieser Seite ist git clone." />
+  <meta name="description" content="GPUCache aus dem Quellcode bauen, CPU/TCP-Verträge testen und synthetische Demos ausführen. Hardware und echte Engine-Integration sind noch nicht qualifiziert." />
   <link rel="canonical" href="https://gpucache.com/de/docs/quickstart/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/quickstart/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/quickstart/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/quickstart/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/quickstart/" />
   <meta property="og:title" content="Schnellstart | GPUCache" />
-  <meta property="og:description" content="Schnellstart für GPUCache. V1 ist in Entwicklung. Es gibt kein installierbares Release. Der einzige Befehl auf dieser Seite ist git clone." />
+  <meta property="og:description" content="GPUCache aus dem Quellcode bauen, CPU/TCP-Verträge testen und synthetische Demos ausführen. Hardware und echte Engine-Integration sind noch nicht qualifiziert." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/de/docs/quickstart/" />
   <meta property="og:locale" content="de_DE" />
@@ -46,18 +46,25 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Dokumentation</p>
-      <nav aria-label="Dokumentation"><a href="/de/docs/architecture/">Architektur</a><a href="/de/docs/tiering/">Schichten</a><a href="/de/docs/roadmap/">Roadmap</a><a href="/de/docs/quickstart/" aria-current="page">Schnellstart</a></nav>
+      <nav aria-label="Dokumentation"><a href="/de/docs/architecture/">Architektur</a><a href="/de/docs/tiering/">Tiering</a><a href="/de/docs/roadmap/">Roadmap</a><a href="/de/docs/quickstart/" aria-current="page">Schnellstart</a><a href="/de/docs/scaling/">Knoten skalieren</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/de/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/de/docs/">Dokumentation</a> <span aria-hidden="true">/</span> <span>Schnellstart</span></p>
-<p class="label">Schnellstart <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></p>
+<p class="label">Dokumentation</p>
 <h1>Schnellstart</h1>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span><p>Es gibt kein installierbares Release. Diese Seite ist keine Deploy-Anleitung.</p></div>
-<p class="lede">Der V1-Kern von GPUCache wird in einem separaten Pull Request entwickelt und liegt nicht auf dem main-Branch. Installations- und Deploy-Schritte stehen hier, wenn V1 erscheint.</p>
-<ol class="steps"><li>Das Repository auf <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a> mit Star oder Watch beobachten, damit eine Veröffentlichung in den Benachrichtigungen erscheint.</li><li>Die Architekturbeschreibung in der <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a> lesen.</li><li>In den <a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a> das eigene Szenario beschreiben: Inferenz-Framework, Kontextlänge, Clustergröße.</li></ol>
-<pre data-copy="Kopieren" data-copied="Kopiert"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span></code></pre>
-<p class="footnote">Der main-Branch enthält noch keinen Anwendungscode, deshalb stehen hier keine Build- oder Run-Befehle.</p>
-<div class="doc-block"><h2>Was es noch nicht gibt</h2><ul><li>Kein installierbares Paket.</li><li>Keine Build-Anleitung.</li><li>Keine Run-Anleitung.</li><li>Keine Deploy-Anleitung.</li></ul></div>
-<div class="doc-block"><h2>Verwandte Seiten</h2><p><a href="/de/docs/architecture/">Architektur</a> · <a href="/de/docs/roadmap/">Roadmap</a></p></div></article>
+<p class="lede">Der main-Branch enthält ausführbaren Rust-Code für einen gemeinsamen KV-Cache auf G3.5 mit CPU/TCP. Beginnen Sie mit den Vertragstests; GPU und DPU sind nicht erforderlich.</p>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span><p>Der Quellcode ist verfügbar. Es gibt noch keine installierbare Veröffentlichung oder Qualifikation für den Produktionseinsatz.</p></div>
+<div class="doc-block"><h2>Aus dem Quellcode bauen und testen</h2><p>Benötigt werden stabiles Rust mit Cargo, Git und Python 3. Beim ersten Lauf werden Abhängigkeiten geladen. Die Tests verwenden synthetische KV-Blöcke, keine Ausgaben eines Inferenzmodells.</p><pre data-copy="Kopieren" data-copied="Kopiert"><code>git clone https://github.com/rustfs/GPUCache.git
+cd GPUCache
+cargo test --workspace --all-targets</code></pre></div>
+<div class="doc-block"><h2>CPU-Demos ausführen</h2><p>Führen Sie die Demos ohne GPUCACHE_RUSTFS_*-Endpunkte oder Zugangsdaten aus. Die Cold-Demo verwendet standardmäßig den Mock und validiert keinen echten RustFS-Dienst.</p><pre data-copy="Kopieren" data-copied="Kopiert"><code>cargo run -p gpucache-transport --bin share-demo
+cargo run -p gpucache-transport --bin shard-demo
+cargo run -p gpucache-cold --bin cold-demo
+cargo run -p gpucache-storage --bin engine-spike
+cargo run -p gpucache-dpu --bin dpu-demo</code></pre><p>Erwartete Kennungen sind REUSE_OK, SHARD_OK, COLD_CONTRACT_OK, FAKE_BLOCK_CONTRACT_OK und DPU_CONTRACT_OK. Der Engine-Versuch prüft künstliche vollständige Blöcke, die DPU-Demo simuliert auf dem Host. Diese Kennungen belegen keinen Lauf einer echten Engine oder eines Geräts.</p></div>
+<div class="doc-block"><h2>Die vollständige CPU-Regression reproduzieren</h2><p>Der Runner prüft Formatierung, Abhängigkeiten, Clippy, Tests, optionale Features und Demos. Er deaktiviert Live-RustFS-Zugriffe und speichert summary.md, results.json, JUnit und Logs. Verwenden Sie pro Lauf ein neues Ausgabeverzeichnis; --offline setzt bereits geladene Abhängigkeiten voraus.</p><pre data-copy="Kopieren" data-copied="Kopiert"><code>cargo fetch --locked
+python3 scripts/ci/vm_regression.py --profile cpu --offline --output artifacts/cpu-docs</code></pre></div>
+<div class="doc-block"><h2>Grenzen dieser Prüfung</h2><p>Echter vLLM-Export/Import, RDMA, GDS und BlueField-3 bleiben NOT_RUN_HARDWARE; der GPU-/Modelllauf bleibt NOT_RUN_BUDGET. Daraus folgen weder ein aktiver Zero-Copy-Pfad noch Hardware-Leistungswerte oder dauerhafte Hot-Tier-Replikate.</p></div>
+<div class="doc-block"><h2>Weitere Dokumentation</h2><p><a href="/de/docs/architecture/">Architektur</a> · <a href="/de/docs/roadmap/">Roadmap</a> · <a href="/de/docs/scaling/">Skalierung und Einsatzgrenzen</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/CPU_COMPLETION.md" target="_blank" rel="noopener noreferrer">CPU_COMPLETION.md</a></p></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -68,7 +75,7 @@
     </div>
     <div>
       <p class="label">Dokumentation</p>
-      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Schichten</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li></ul>
+      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Tiering</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li><li><a href="/de/docs/scaling/">Knoten skalieren</a></li></ul>
     </div>
     <div>
       <p class="label">Projekt</p>

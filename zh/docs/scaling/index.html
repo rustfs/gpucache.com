@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>从 1 个节点扩展到 3 个，再到 10 个 | GPUCache</title>
+  <meta name="description" content="GPUCache CPU/TCP 扩容操作手册：从 1 到 3 到 10 个节点的路由、epoch 隔离、连接上限、验证与回滚。" />
+  <link rel="canonical" href="https://gpucache.com/zh/docs/scaling/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/scaling/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/scaling/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/scaling/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/scaling/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/scaling/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/scaling/" />
+  <meta property="og:title" content="从 1 个节点扩展到 3 个，再到 10 个 | GPUCache" />
+  <meta property="og:description" content="GPUCache CPU/TCP 扩容操作手册：从 1 到 3 到 10 个节点的路由、epoch 隔离、连接上限、验证与回滚。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/zh/docs/scaling/" />
+  <meta property="og:locale" content="zh_CN" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">跳到正文</a>
+<header class="site-header">
+  <a class="brand" href="/zh/" aria-label="RustFS GPUCache 首页">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">菜单</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="页面区块">
+    <a href="/zh/#problem">问题</a><a href="/zh/#approach">方案</a><a href="/zh/#architecture">架构</a><a href="/zh/#roadmap">路线图</a><a href="/zh/#rustfs">与 RustFS</a><a href="/zh/#quickstart">快速开始</a><a href="/zh/docs/" aria-current="page">文档</a>
+    <ul class="lang-switch" aria-label="语言"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="语言"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">文档</p>
+      <nav aria-label="文档"><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/">分层</a><a href="/zh/docs/roadmap/">路线图</a><a href="/zh/docs/quickstart/">快速开始</a><a href="/zh/docs/scaling/" aria-current="page">节点扩容</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/zh/">GPUCache</a> / <a href="/zh/docs/">文档</a> / 节点扩容</p><p class="label">CPU / TCP <span class="status status-preview"><i aria-hidden="true"></i>开发中</span></p><h1>从 1 个节点扩展到 3 个，再到 10 个</h1><p class="lede">从一个分片开始，增加成员时沿用相同的客户端 API。当前 CPU/TCP 路径需要运维协调：启动一个新服务进程不会自动入群，应用必须向每个 ShardedClient 发布完整的路由快照。</p><div class="callout"><p>可运行示例在同一个进程内启动 1、3、10 个 localhost TCP 服务，验证软件契约。它不等于 10 台物理机验证，也不证明生产可用性、GPU 容量或吞吐。RDMA、GDS、BlueField-3 和真实引擎集成仍是 NOT_RUN_HARDWARE。</p></div><section class="doc-block"><h2>先确定拓扑</h2><div class="table-wrap" tabindex="0"><table><thead><tr><th scope="col">阶段</th><th scope="col">固定分片 ID</th><th scope="col">地址示例</th><th scope="col">epoch 要求</th></tr></thead><tbody><tr><td>1 个节点</td><td>0</td><td>10.0.0.11:9735</td><td>初始实际 epoch E</td></tr><tr><td>3 个节点</td><td>0–2</td><td>10.0.0.11–13:9735</td><td>每个节点均大于上一轮最大 epoch</td></tr><tr><td>10 个节点</td><td>0–9</td><td>10.0.0.11–20:9735</td><td>每个节点均大于上一轮最大 epoch</td></tr></tbody></table></div><p>表中的私网地址仅作示例，请替换为实际可达地址。每个服务使用独立数据目录，端点对应唯一且稳定的分片 ID。ID 配置在客户端路由中，服务端没有 --shard-id 参数，也没有 --join、种子发现、仲裁或副本数配置。完整 CacheIdentity 通过 rendezvous hash 选择一个归属分片，不会把同一份数据写入所有节点。</p></section>
+<section class="doc-block"><h2>先运行本机验证示例</h2>
+<p>按快速开始准备环境后，从下方链接的源码版本运行。示例创建独立临时目录，在每次扩容时停止并等待旧服务退出，提升所有节点的 epoch，替换完整路由，验证旧 session 被拒绝，并对每个分片执行 Lookup / Put / Commit / Get / Drained 释放。结束后清理临时目录。</p><pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-transport --example scaling_smoke
+cargo test -p gpucache-transport --example scaling_smoke</code></pre><p>以下为成功执行的部分真实输出。完整输出还逐一验证三个阶段的分片 ID：0、0–2、0–9。这是正确性验证，不是性能测量。</p><pre data-copy="Copy" data-copied="Copied"><code>status=SCALING_SMOKE_OK
+topology=SINGLE_PROCESS_LOCALHOST
+stage_shards=1 store_epoch=1 local_revision=1
+stage_shards=3 store_epoch=2 local_revision=2
+stage_shards=10 store_epoch=3 local_revision=3
+per_shard_roundtrips=14
+stale_sessions=REJECTED
+automatic_payload_migration=NONE
+durability_replication=NONE
+hardware=NOT_RUN_HARDWARE
+performance=NOT_A_PERFORMANCE_RESULT</code></pre></section>
+<section class="doc-block"><h2>启动 1 个节点</h2>
+<p>以下命令启动一个独立的 FileStore 服务，仅监听本机。示例 fingerprint 是公开的开发测试值，非本机测试请配置自己的凭据与租户策略。在应用中创建 ShardedClient：配置分片 ID 0、此地址和 TCP 握手返回的实际 epoch；使用其 lease/session API，保证 Put 和 Commit 仍指向选定的归属节点。</p><pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-transport --bin gpucache-tcp -- serve \
+  --data-dir ./data/shard-0 --bind 127.0.0.1:9735 \
+  --tenant 1 --trust 1 \
+  --fingerprint 0000000000000000000000000000000000000000000000000000000000000001</code></pre><p>跨机器时，只在隔离可信网络上绑定节点私网地址，例如 --bind 10.0.0.11:9735 --allow-remote。--allow-remote 不会启用 TLS 或加密的对端身份认证，fingerprint 是通过明文 TCP 传输的持有者凭据。CLI 负责启动服务，分片客户端仍需由应用代码构建。</p></section>
+<section class="doc-block"><h2>在第一阶段之前配置客户端</h2>
+<p>在已有认证上下文和经核实的初始端点的应用代码中，创建客户端时就按最终拓扑设置上限。replace_routes 不能修改 ClientLimits。以下配置在三个阶段都允许最多十个分片、每分片一个连接：</p><pre data-copy="Copy" data-copied="Copied"><code>use gpucache_transport::{ClientLimits, ShardedClient};
+
+let limits = ClientLimits {
+    max_shards: 10,
+    max_connections: 10,
+    max_connections_per_shard: 1,
+    max_frame_bytes: 2 * 1024 * 1024,
+    ..ClientLimits::default()
+};
+let client = ShardedClient::new(auth, endpoints, limits)?;</code></pre><p>默认的每分片连接上限是 4；如果仅把 max_connections 改为 3 而保持该默认值，配置会被拒绝。每个服务默认最多接受 16 个连接，由所有客户端共享；每个客户端进程有独立连接池，需规划总连接数。</p><p>CLI 服务端的帧正文上限是 2 MiB，上面的 max_frame_bytes 与其一致。协议不会协商帧上限，客户端与服务端需要配置一致。独立的 scaling_smoke 示例则在两端都使用匹配的 1 MiB 库默认值。</p><p>新客户端的本地 revision 从 1 开始，与实际 store epoch 无关。完成协调的服务切换后，读取该客户端当前 revision，再调用 client.replace_routes(revision, endpoints) 发布完整快照。revision 属于各客户端，不是 store epoch，也不是共享的共识任期。</p></section>
+<section class="doc-block"><h2>从 1 个节点扩到 3 个</h2><ol><li>准备新分片 ID 1、2：独立存储目录、一致的租户与 trust 策略、可达的地址。沿用第一阶段之前选定的客户端上限，并检查服务端、pin、字节和重试配额。</li><li>暂停所有能访问旧归属节点的客户端，停止新的 Lookup/Get/Put/Commit。等待传输完成，以确认完成的 Drained 释放 pin；租约过期本身不代表传输已排空。完成或取消、隔离未完成的写入，不跨轮次复用旧租约。</li><li>停止旧服务并等待所有 worker 退出，或执行可验证的外部隔离，阻止旧节点继续读写。replace_routes 只改变本地客户端状态，不能隔离远端服务。不能证明旧节点已隔离，就不要发布新路由。</li><li>独占每个数据目录，准备好存储，使下一次服务握手的 epoch 严格大于上一轮快照的最大值。重启旧节点；新目录按需初始化并重新打开。对外恢复访问前，检查每个节点实际握手结果。</li><li>构建包含 ID 0、1、2 全部实际地址和 epoch 的完整快照。对每个暂停的客户端读取 let revision = client.stats().revision;，然后调用 client.replace_routes(revision, endpoints)。必须处理拒绝结果，不能只发布新增节点；确认所有必要客户端接受同一完整快照后再恢复流量。</li><li>切换完成后，为新的逻辑请求获取新 session。在同一有效 epoch 内，一个 generation 后续的 Commit/Get/Release 必须保持原分片和 epoch，不能重新路由这些仅带 generation 的后续操作。已被隔离的工作应丢弃，不能改写 epoch 重试。重新映射的 identity 不会自动迁移：未命中或出错后重算并显式回填。可选冷层恢复仍在热路径之外。</li></ol><div class="callout"><p>epoch 易错点：新 FileStore 首次打开为 1，同一已有目录每次重新打开增加 1。当前没有 --epoch 参数或管理员 epoch RPC。上一轮最大值为 1 时，三个端点都必须至少为 2，包括两个新节点；上一轮最大值为 7 时，全部至少为 8。示例通过独占目录、有限次重新打开来准备 epoch，实际部署需提供等价编排。不要手工修改 MANIFEST。</p></div></section>
+<section class="doc-block"><h2>从 3 个节点扩到 10 个</h2>
+<p>对 ID 0–9 重复「暂停 → 排空 → 停止或隔离 → 准备 epoch → 发布完整快照 → 验证 → 恢复」。演示从全 1 到全 2 后，下一轮可用 3；实际部署必须依据观测到的上一轮最大值，不能按节点数推算。使用创建客户端时已规划的上限；替换路由不会调整这些上限。逐分片规划租户配额、重试表、pin/region、帧大小、内存和磁盘容量；增加节点不会取消这些限制。</p><p>客户端直接访问选中的归属节点；ShardDirectory 只保存有界元数据，不集中保存所有数据。一个节点丢失后，其键会未命中，不会转去热副本。三个节点不代表存在仲裁，十个节点也不证明支持一万张 GPU。容量和键分布需要用实际负载验证，本手册不承诺吞吐线性增长。</p></section>
+<section class="doc-block"><h2>验收、观测与回滚</h2><ul><li>记录源码提交、每个固定分片 ID、地址、实际 epoch，以及每个客户端采用的完整快照版本。检查 ID 和端点均无重复。</li><li>为每个分片选择归属该分片的键，执行 Lookup → Put → Commit → Get、字节比对和 Drained 释放；验证跨租户或错误 identity 不会命中。generation 仅在分片内有效，必须同时保留分片 ID 与 epoch。</li><li>成员变化后验证旧 session/lease 被拒绝，旧归属节点上的未完成写入不能跨轮次提交。测试停止一个节点，确认超时或未命中触发重算，绝不返回别的 identity 的数据。</li><li>查看客户端统计与存储 drain、quarantine、fence 报告；分别统计逻辑描述符字节和线传字节，以及配额失败、重试、连接使用情况。运行仓库 CPU 回归；该结果不代替真实多机验收。</li><li>发布或冒烟检查失败时保持流量暂停。修复快照，或再次执行协调停止、隔离，为每个端点使用更高 epoch 后回到旧节点集合。禁止回退旧 epoch/旧快照或恢复旧 lease；丢失的热数据可以重算。</li></ul><pre data-copy="Copy" data-copied="Copied"><code>python3 scripts/ci/vm_regression.py --profile cpu --offline \
+  --output artifacts/scaling-cpu</code></pre></section>
+<section class="doc-block"><h2>对应源码</h2>
+<p>以仓库操作手册和可执行示例为 API 依据。当前没有开箱即用的集群管理器、在线重分片或数据迁移，也没有滚动升级可用性保证或生产多机验证结论。</p><p><a href="https://github.com/rustfs/GPUCache/blob/af5162912b87b24a722004aa61fece93b72fb7cf/docs/SCALING.md">SCALING.md</a> · <a href="https://github.com/rustfs/GPUCache/blob/af5162912b87b24a722004aa61fece93b72fb7cf/crates/transport/examples/scaling_smoke.rs">scaling_smoke.rs</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/OPERATIONS.md">OPERATIONS.md</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/SECURITY.md">SECURITY.md</a></p></section></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/zh/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS 是 RustFS, Inc. 的商标</p>
+    </div>
+    <div>
+      <p class="label">文档</p>
+      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li><li><a href="/zh/docs/scaling/">节点扩容</a></li></ul>
+    </div>
+    <div>
+      <p class="label">项目</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 许可</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="语言"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-current="page" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

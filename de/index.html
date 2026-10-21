@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GPUCache | KV Cache der Schicht G3.5 auf der DPU</title>
-  <meta name="description" content="GPUCache ist ein DPU-basiertes GDS-KVCache von RustFS. Es gibt GPU-Clustern eine gemeinsame heiße KV-Cache-Schicht auf G3.5. In Rust geschrieben, Open Source unter Apache 2.0, in Entwicklung." />
+  <title>GPUCache | Gemeinsamer KV-Cache auf G3.5</title>
+  <meta name="description" content="GPUCache-Architektur: CPU/TCP für gemeinsam genutzte G3.5-KV-Blöcke, begrenzte Shards und separates G4. DPU, RDMA und GDS bleiben Hardwareziele." />
   <link rel="canonical" href="https://gpucache.com/de/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/" />
@@ -12,8 +12,8 @@
   <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/" />
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/" />
-  <meta property="og:title" content="GPUCache | KV Cache der Schicht G3.5 auf der DPU" />
-  <meta property="og:description" content="GPUCache ist ein DPU-basiertes GDS-KVCache von RustFS. Es gibt GPU-Clustern eine gemeinsame heiße KV-Cache-Schicht auf G3.5. In Rust geschrieben, Open Source unter Apache 2.0, in Entwicklung." />
+  <meta property="og:title" content="GPUCache | Gemeinsamer KV-Cache auf G3.5" />
+  <meta property="og:description" content="GPUCache-Architektur: CPU/TCP für gemeinsam genutzte G3.5-KV-Blöcke, begrenzte Shards und separates G4. DPU, RDMA und GDS bleiben Hardwareziele." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/de/" />
   <meta property="og:locale" content="de_DE" />
@@ -47,9 +47,9 @@
     <div class="container hero-grid">
       <div>
         <p class="label">RUSTFS GPUCACHE · G3.5 <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></p>
-        <h1>KV Cache auf der Schicht G3.5, auf der DPU.</h1>
-        <p class="lede">GPUCache ist ein DPU-basiertes GDS-KVCache. Es legt KV Cache, der nicht mehr in den GPU-Speicher passt, auf gemeinsamen NVMe-Flash, den eine DPU verwaltet, und füllt ihn bei Bedarf zurück zur GPU. Kontext, der schon berechnet wurde, muss nicht noch einmal berechnet werden.</p>
-        <p class="fine">In Rust geschrieben · Apache 2.0 · BlueField-3-Unterstützung in Entwicklung</p>
+        <h1>Gemeinsamer KV-Cache auf G3.5.</h1>
+        <p class="lede">GPUCache bildet die gemeinsame KV-Hot-Tier G3.5. Die implementierte Datenstrecke nutzt Hostspeicher und TCP. RustFS ist die kältere G4-Objektschicht außerhalb des heißen Anfragepfads.</p>
+        <p class="fine">Rust · Apache 2.0 · CPU/TCP-Quellcode verfügbar</p>
         <div class="actions">
           <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">Fortschritt auf GitHub verfolgen</a>
           <a class="button button-secondary" href="#architecture">Architektur ansehen</a>
@@ -71,36 +71,33 @@
   <section class="section" id="approach">
     <div class="container">
       <div class="split">
-        <div><p class="label">Ansatz</p><h2>Zwischen G3 und G4 eine gemeinsame KV-Cache-Schicht legen.</h2></div>
-        <p class="lede">GPUCache ist eine heiße Schicht nur für KV Cache. Eine DPU verwaltet gemeinsamen NVMe-Flash für den ganzen GPU-Cluster.</p>
+        <div><p class="label">Ansatz</p><h2>Passende Blöcke wiederverwenden, bei Miss neu berechnen.</h2></div>
+        <p class="lede">BlueField-3, GDS und echtes RDMA sind Entwicklungsziele: NOT_RUN_HARDWARE. Der aktuelle Pfad kopiert im Hostspeicher und beansprucht weder Zero-Copy noch eine Umgehung der CPU.</p>
       </div>
-      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Auf der DPU <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></h3><p>Die KV-Engine läuft auf den Arm-Kernen der DPU und verwaltet den Flash direkt. Die Speicherseite braucht keinen x86-Speicherhost. Die BlueField-3-Unterstützung ist in Entwicklung.</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>GDS-Datenpfad <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></h3><p>Der Zielpfad führt vom GPU-Speicher über die DPU zum NVMe-Flash. KV-Daten werden dabei nicht von der Host-CPU weitergereicht. Die erste Stufe öffnet den Pfad über den Host-Speicher.</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>Nur die heiße Schicht. Ein Verlust ist ein Miss.</h3><p>GPUCache übernimmt keine Dauerhaftigkeit. Ein Knotenausfall oder verlorene Daten sind ein sauberer Miss. Das Inferenz-Framework rechnet neu, schreibt zurück, und der nächste Zugriff kann treffen. Daten, die bleiben müssen, gehen an RustFS auf G4.</p></div></li></ol>
-      <div class="doc-block"><h3>Nicht passend</h3><ul><li>Daten, die dauerhaft bleiben müssen. G3.5 ist ein Cache. Dauerhafte Daten gehören auf RustFS in G4.</li><li>Checkpoint-Speicher für das Training. Das ist Arbeit für G4.</li><li>Ein Produktionseinsatz heute. V1 ist noch in Entwicklung.</li></ul></div>
+      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Der heute ausführbare Pfad</h3><p>CPU/TCP sowie Speicher- und Dateibackends sind im Quellcode verfügbar. GPU oder DPU sind nicht erforderlich.</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>Ein Knoten oder mehrere Shards</h3><p>Begrenzte Routen, Verbindungen und Epoch-Fencing unterstützen betreiberverwaltete Shards.</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>Bei Verlust neu berechnen</h3><p>G3.5 fügt weder Erasure Coding noch Replikate zur dauerhaften Speicherung hinzu. Unbekannter Transferabschluss bleibt bis zum expliziten Drain oder einem neueren Fence in Quarantäne. RustFS übernimmt die Dauerhaftigkeit kalter Daten. Dies ist ein Cache-Vertrag, keine Disaster-Recovery-Lösung oder Flottenqualifikation.</p></div></li></ol>
+      <div class="doc-block"><h3>Nicht passend</h3><ul><li>Daten, die dauerhaft bleiben müssen. G3.5 ist ein Cache. Dauerhafte Daten gehören auf RustFS in G4.</li><li>Checkpoint-Speicher für das Training. Das ist Arbeit für G4.</li><li>Der Produktionseinsatz ist noch nicht qualifiziert.</li></ul></div>
     </div>
   </section>
   <section class="section section-paper" id="architecture">
     <div class="container">
       <div class="split">
-        <div><p class="label">Architektur</p><h2>GPU, DPU und Flash, jede mit ihrer Aufgabe.</h2></div>
-        <p class="lede">GPUCache legt den heißen Pfad der KV-Daten zwischen NIC, DPU und SSDs. Die Abbildung ist das Zielbild. Jede Komponente ist in Entwicklung.</p>
+        <div><p class="label">Architektur</p><h2>Heute CPU/TCP. Hardwareziele separat prüfen.</h2></div>
+        <p class="lede">GPUCache bildet die gemeinsame KV-Hot-Tier G3.5. Die implementierte Datenstrecke nutzt Hostspeicher und TCP. RustFS ist die kältere G4-Objektschicht außerhalb des heißen Anfragepfads.</p>
       </div>
-      <ol class="path" aria-label="Datenpfad des Zielbilds, in Entwicklung"><li><strong>GPU-Speicher / Host-Speicher</strong></li><li class="via">RDMA / RoCEv2</li><li><strong>DPU</strong><span>Rust-KV-Engine</span></li><li class="via">SPDK</li><li><strong>NVMe-Flash</strong></li></ol>
-      <p><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></p>
-      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Rust-KV-Engine <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></h3><p>Eine Storage-Engine für KV Cache, in Rust geschrieben, auf den Arm-Kernen der DPU.</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>RDMA- / RoCEv2-Transport <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></h3><p>Rechenknoten sprechen mit G3.5 über RDMA.</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>SPDK-Flashverwaltung <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></h3><p>SPDK auf der DPU greift direkt auf NVMe-SSDs zu.</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>NVIDIA DOCA und Arm-Cross-Kompilierung <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></h3><p>Bauen und laufen auf BlueField-3.</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>Anbindung an Inferenz-Frameworks <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></h3><p>Geplante Anbindung an die KV-Cache-Schnittstellen von Frameworks wie vLLM und TensorRT-LLM, verwaltet in der Blockgranularität von PagedAttention.</p></div></li></ol>
-      <p class="footnote">Der Datenpfad geht in drei Stufen vor: über den Host-Speicher, dann über einen Zwischenpuffer, dann GDS direkt. Nur eine geprüfte Kombination wird als Unterstützung für GDS direkt bezeichnet. <a href="/de/docs/architecture/">Architekturdoku</a></p>
+      <ol class="path" aria-label="Implementierter CPU/TCP-Pfad"><li><strong>Host-Client</strong></li><li class="via">TCP</li><li><strong>G3.5-Shard</strong><span>Rust</span></li><li class="via">CPU</li><li><strong>Hostspeicher / Dateien</strong></li></ol>
+      <p><span class="status status-done"><i aria-hidden="true"></i>CPU-Vertrag verfügbar</span></p>
+      <ol class="rule-list"><li class="rule-item"><span class="index">01</span><div><h3>Der heute ausführbare Pfad</h3><p>CPU/TCP sowie Speicher- und Dateibackends sind im Quellcode verfügbar. GPU oder DPU sind nicht erforderlich.</p></div></li><li class="rule-item"><span class="index">02</span><div><h3>Identität vor Wiederverwendung</h3><p>Nur bestätigte Blöcke mit vollständiger passender Identität können treffen. Bei Miss wird neu berechnet.</p></div></li><li class="rule-item"><span class="index">03</span><div><h3>Ein Knoten oder mehrere Shards</h3><p>Begrenzte Routen, Verbindungen und Epoch-Fencing unterstützen betreiberverwaltete Shards.</p></div></li><li class="rule-item"><span class="index">04</span><div><h3>Die Cold-Tier bleibt separat</h3><p>RustFS liegt auf G4 außerhalb des heißen Pfads. Cold-Mock-Verträge sind getestet; Live-RustFS bleibt NOT_RUN_HARDWARE.</p></div></li><li class="rule-item"><span class="index">05</span><div><h3>Das DPU-Ziel</h3><p>DPU/GDS/RDMA bleiben NOT_RUN_HARDWARE. engine-spike nutzt künstliche Blöcke; aarch64 liefert nur CPU-Nachweise.</p></div></li></ol>
+      <p class="footnote">BlueField-3, GDS und echtes RDMA sind Entwicklungsziele: NOT_RUN_HARDWARE. Der aktuelle Pfad kopiert im Hostspeicher und beansprucht weder Zero-Copy noch eine Umgehung der CPU. <a href="/de/docs/architecture/">Der heute ausführbare Pfad</a></p>
     </div>
   </section>
   <section class="section" id="roadmap">
     <div class="container">
       <div class="split">
         <div><p class="label">Roadmap</p><h2>Wo die Arbeit steht.</h2></div>
-        <p class="lede">Der Status folgt dem main-Branch des GitHub-Repositorys und wird mit diesem Branch aktualisiert.</p>
+        <p class="lede">Der Status unterscheidet verfügbaren Quellcode und reproduzierbare CPU-Verträge von Hardwarequalifikation. Er verspricht weder einen Veröffentlichungstermin noch gemessene Flottenkapazität.</p>
       </div>
       <div class="table-wrap" tabindex="0">
-        <table>
-          <thead><tr><th scope="col">Status</th><th scope="col">Punkt</th></tr></thead>
-          <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>Umgesetzt</span></td><td>Open-Source-Repository angelegt, unter der Apache-2.0-Lizenz</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>Umgesetzt</span></td><td>Produktposition und Architekturrichtung: Schicht G3.5, ein DPU-basiertes GDS-KVCache, und die Trennung zwischen der heißen Schicht und RustFS auf G4</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>V1-Kern: Rust-KV-Engine</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>RDMA- / RoCEv2-Kommunikationsschicht</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>SPDK-Integration, direkter NVMe-Zugriff</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>NVIDIA-DOCA-Integration und Arm-Cross-Kompilierung, BlueField-3-Unterstützung</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>Datenpfad: über den Host-Speicher, danach GDS-Direktweg</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></td><td>Anbindung an Inferenz-Frameworks (vLLM, TensorRT-LLM)</td></tr></tbody>
-        </table>
+        <table><thead><tr><th scope="col">Status</th><th scope="col">Funktion</th><th scope="col">Grenze</th></tr></thead><tbody><tr><td>CPU/TCP verfügbar</td><td>Identität, Lebenszyklus, MemoryStore/FileStore, TCP-ACL und Lesezulassung</td><td>Synthetische Tests; vertrauenswürdige Netzwerkgrenze, kein mTLS.</td></tr><tr><td>CPU/TCP verfügbar</td><td>Begrenzte Shard-Clients, Mitgliedschaft und Epoch-Fencing</td><td>Betreiberverwaltete Routen; kein verteilter Konsens und keine Größenqualifikation.</td></tr><tr><td>Mock-Vertrag verfügbar</td><td>G4-Manifest v3, begrenzte Queue, Refill und Aufbewahrung</td><td>Live-RustFS: NOT_RUN_HARDWARE. Verwaiste Objekte werden nicht automatisch gesammelt.</td></tr><tr><td>CPU-Simulation verfügbar</td><td>DPU-Nachrichten, Fehlerinjektion und funktionaler TCP-Vergleich</td><td>Kein Beleg für Geräte-Offload, Zero-Copy, Durchsatz oder TCO.</td></tr><tr><td>Versuch mit künstlichen Blöcken</td><td>EngineBlockContract und engine-spike</td><td>Echter vLLM-Export/Import: NOT_RUN_HARDWARE; GPU-/Modelllauf: NOT_RUN_BUDGET.</td></tr><tr><td>In Entwicklung</td><td>Echtes RDMA, GDS, BlueField-3 / DOCA und SPDK</td><td>NOT_RUN_HARDWARE. Optionale Features bleiben ohne Geräteanbindung und verweigern das Öffnen.</td></tr></tbody></table>
       </div>
       <p class="footnote"><a href="/de/docs/roadmap/">Wie diese Roadmap zu lesen ist</a></p>
     </div>
@@ -118,21 +115,24 @@
   <section class="section" id="quickstart">
     <div class="container">
       <div class="split">
-        <div><p class="label">Schnellstart <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></p><h2>V1 ist noch in Entwicklung. Das können Sie jetzt tun.</h2></div>
-        <div class="prose"><p>Der V1-Kern von GPUCache ist in Entwicklung. Es gibt noch kein installierbares Release. Installations- und Deploy-Schritte stehen hier, wenn V1 erscheint.</p></div>
+        <div><p class="label">Schnellstart <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></p><h2>Den CPU-Vertrag bauen, testen und prüfen.</h2></div>
+        <div class="prose"><p>Der main-Branch enthält ausführbaren Rust-Code für einen gemeinsamen KV-Cache auf G3.5 mit CPU/TCP. Beginnen Sie mit den Vertragstests; GPU und DPU sind nicht erforderlich.</p><p>Der Quellcode ist verfügbar. Es gibt noch keine installierbare Veröffentlichung oder Qualifikation für den Produktionseinsatz.</p></div>
       </div>
-      <ol class="steps"><li>Das Repository auf <a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a> mit Star oder Watch beobachten, damit eine Veröffentlichung in den Benachrichtigungen erscheint.</li><li>Die Architekturbeschreibung in der <a href="https://github.com/rustfs/GPUCache/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a> lesen.</li><li>In den <a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a> das eigene Szenario beschreiben: Inferenz-Framework, Kontextlänge, Clustergröße.</li></ol>
-      <pre data-copy="Kopieren" data-copied="Kopiert"><code><span class="kw">git clone</span> <span class="str">https://github.com/rustfs/GPUCache.git</span></code></pre>
-      <p class="footnote">Der main-Branch enthält noch keinen Anwendungscode, deshalb stehen hier keine Build- oder Run-Befehle. <a href="/de/docs/quickstart/">Schnellstart-Doku</a></p>
+      <ol class="steps"><li>Stabiles Rust mit Cargo, Git und Python 3 installieren.</li><li>Quellcode klonen und Workspace-Tests ausführen.</li><li>Demos und CPU-Regression nach der vollständigen Anleitung starten.</li></ol>
+      <pre data-copy="Kopieren" data-copied="Kopiert"><code>git clone https://github.com/rustfs/GPUCache.git
+cd GPUCache
+cargo test --workspace --all-targets
+cargo run -p gpucache-transport --bin share-demo</code></pre>
+      <p class="footnote">Die vollständige Anleitung enthält die CPU-Regression und klare Hardwaregrenzen. <a href="/de/docs/quickstart/">Aus dem Quellcode bauen und testen</a></p>
     </div>
   </section>
   <section class="section section-paper" id="docs">
     <div class="container">
       <div class="split">
-        <div><p class="label">Dokumentation</p><h2>Das Zielbild nachlesen.</h2></div>
-        <p class="lede">Vier Seiten beschreiben die Architektur, das Schichtenmodell, was umgesetzt ist und was vor einem Release möglich ist.</p>
+        <div><p class="label">Dokumentation</p><h2>Implementierung und Grenzen verstehen.</h2></div>
+        <p class="lede">Architektur, Schichten, Status, Quellcodebefehle und Skalierung trennen CPU-Verträge von unqualifizierten Hardwarezielen.</p>
       </div>
-      <ul class="doc-links"><li><a href="/de/docs/architecture/"><strong>Architektur</strong><span>GPU, DPU und Flash, und die drei Stufen des Datenpfads.</span></a></li><li><a href="/de/docs/tiering/"><strong>Schichten</strong><span>Wo G3.5 zwischen G1 und G4 liegt.</span></a></li><li><a href="/de/docs/roadmap/"><strong>Roadmap</strong><span>Was umgesetzt ist und was in Entwicklung ist.</span></a></li><li><a href="/de/docs/quickstart/"><strong>Schnellstart</strong><span>Was vor einem Release möglich ist.</span></a></li></ul>
+      <ul class="doc-links"><li><a href="/de/docs/architecture/"><strong>Architektur</strong><span>CPU/TCP, Shards und die separate Cold-Tier.</span></a></li><li><a href="/de/docs/tiering/"><strong>Schichten</strong><span>Die Position von G3.5 zwischen G1 und G4.</span></a></li><li><a href="/de/docs/roadmap/"><strong>Roadmap</strong><span>Verfügbare Software und nächste Nachweise.</span></a></li><li><a href="/de/docs/quickstart/"><strong>Schnellstart</strong><span>Bauen, testen und synthetische Demos starten.</span></a></li><li><a href="/de/docs/scaling/"><strong>Knoten skalieren</strong><span>1 → 3 → 10 Knoten mit Epochs und vollständigen Routen.</span></a></li></ul>
     </div>
   </section>
   <section class="section cta" id="participate">
@@ -156,7 +156,7 @@
     </div>
     <div>
       <p class="label">Dokumentation</p>
-      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Schichten</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li></ul>
+      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Tiering</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li><li><a href="/de/docs/scaling/">Knoten skalieren</a></li></ul>
     </div>
     <div>
       <p class="label">Projekt</p>

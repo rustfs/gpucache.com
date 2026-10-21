@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ロードマップ｜GPUCache</title>
-  <meta name="description" content="GPUCache のロードマップ。実装済みは main ブランチにあるもの。エンジン、RDMA、SPDK、DOCA、データパス、フレームワーク接続は開発中です。" />
+  <meta name="description" content="GPUCache の状況：CPU/TCP、シャーディング、コールド mock、シミュレーション契約は利用可能。実エンジン、RDMA、GDS、BlueField-3 は未検証です。" />
   <link rel="canonical" href="https://gpucache.com/ja/docs/roadmap/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/roadmap/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/roadmap/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/roadmap/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/roadmap/" />
   <meta property="og:title" content="ロードマップ｜GPUCache" />
-  <meta property="og:description" content="GPUCache のロードマップ。実装済みは main ブランチにあるもの。エンジン、RDMA、SPDK、DOCA、データパス、フレームワーク接続は開発中です。" />
+  <meta property="og:description" content="GPUCache の状況：CPU/TCP、シャーディング、コールド mock、シミュレーション契約は利用可能。実エンジン、RDMA、GDS、BlueField-3 は未検証です。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/ja/docs/roadmap/" />
   <meta property="og:locale" content="ja_JP" />
@@ -46,19 +46,16 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">ドキュメント</p>
-      <nav aria-label="ドキュメント"><a href="/ja/docs/architecture/">アーキテクチャ</a><a href="/ja/docs/tiering/">階層</a><a href="/ja/docs/roadmap/" aria-current="page">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a></nav>
+      <nav aria-label="ドキュメント"><a href="/ja/docs/architecture/">アーキテクチャ</a><a href="/ja/docs/tiering/">階層</a><a href="/ja/docs/roadmap/" aria-current="page">ロードマップ</a><a href="/ja/docs/quickstart/">クイックスタート</a><a href="/ja/docs/scaling/">ノード拡張</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/ja/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/ja/docs/">ドキュメント</a> <span aria-hidden="true">/</span> <span>ロードマップ</span></p>
 <p class="label">ドキュメント</p>
 <h1>ロードマップ</h1>
-<p class="lede">状態は GitHub リポジトリの main ブランチに従い、そのブランチが変われば更新します。このページはリリース日もバージョン番号も約束しません。</p>
-<div class="table-wrap" tabindex="0">
-  <table>
-    <thead><tr><th scope="col">状態</th><th scope="col">項目</th></tr></thead>
-    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>実装済み</span></td><td>オープンソースのリポジトリを公開し、Apache 2.0 でライセンスした</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>実装済み</span></td><td>製品の位置づけとアーキテクチャの方向：G3.5 層、DPU ベースの GDS KVCache、ホット層と G4 の RustFS の分担</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>V1 コア：Rust KV エンジン</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>RDMA / RoCEv2 通信層</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>SPDK 統合と NVMe への直接アクセス</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>NVIDIA DOCA 統合と Arm クロスコンパイル、BlueField-3 対応</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>データパス：ホストメモリ経由から GDS 直通へ</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>開発中</span></td><td>推論フレームワークとの接続（vLLM、TensorRT-LLM）</td></tr></tbody>
-  </table>
-</div>
-<div class="doc-block"><h2>二つの状態の読み方</h2><p>実装済みは、リポジトリが存在し、方向が書いてあることを指します。キャッシュが動いているという意味ではありません。</p><p>開発中は、その仕事が main に無いことを指します。V1 コア、つまり Rust KV エンジンは、別の pull request にあります。このページの行が実装済みに変わるのは、その仕事が main に入った後だけです。</p><p>2026-10-15 時点で、main ブランチにあるのは README.md と LICENSE だけです。README で未完了の項目を、ここでは既にある能力とは扱いません。</p></div></article>
+<p class="lede">利用可能なソースと再現可能な CPU 契約を、実機の検証と区別します。リリース日や実測クラスタ容量を約束するものではありません。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th scope="col">状況</th><th scope="col">機能</th><th scope="col">検証の境界</th></tr></thead><tbody><tr><td>CPU/TCP 利用可能</td><td>識別情報、ライフサイクル、MemoryStore/FileStore、TCP ACL、読み取りの受付制限</td><td>合成データのテスト。信頼されたネットワークが前提で、mTLS は未実装。</td></tr><tr><td>CPU/TCP 利用可能</td><td>有界シャードクライアント、メンバー更新、epoch フェンシング</td><td>運用者が経路を管理。分散合意や実運用規模の認証は未実施。</td></tr><tr><td>mock 契約が利用可能</td><td>G4 v3 マニフェスト、有界キュー、リフィル、保持管理</td><td>実際の RustFS は NOT_RUN_HARDWARE。孤立オブジェクトの回収は自動化しない。</td></tr><tr><td>CPU シミュレーション</td><td>DPU メッセージ、障害注入、TCP との機能比較</td><td>デバイスオフロード、ゼロコピー、スループット、TCO の実証ではない。</td></tr><tr><td>偽ブロックの実験</td><td>EngineBlockContract と engine-spike</td><td>実 vLLM の入出力は NOT_RUN_HARDWARE。GPU／モデル実行は NOT_RUN_BUDGET。</td></tr><tr><td>開発中</td><td>実 RDMA、GDS、BlueField-3 / DOCA、SPDK</td><td>NOT_RUN_HARDWARE。オプション機能は機器をリンクせず、オープンを拒否。</td></tr></tbody></table></div>
+<div class="doc-block"><h2>次に必要な検証</h2><p>承認済みの GPU とモデル資源で実エンジンを検証し、適切な対照条件で実機経路を測定します。それまでは TCO_UNKNOWN と NOT_EVALUATED を維持します。ソースが利用できても、インストール可能なリリースや本番対応を意味しません。</p></div>
+<div class="doc-block"><h2>維持する境界</h2><p>RustFS はホット経路に入りません。G3.5 の損失時は再計算し、消失訂正符号や永続レプリカは計画しません。拡張は有界シャード、フェンシング、安全なミスに基づき、10,000 GPU を検証済みとは主張しません。</p></div>
+<div class="doc-block"><h2>関連ドキュメント</h2><p><a href="/ja/docs/quickstart/">クイックスタート</a> · <a href="/ja/docs/architecture/">アーキテクチャ</a> · <a href="/ja/docs/scaling/">スケーリングと導入の境界</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/CPU_COMPLETION.md" target="_blank" rel="noopener noreferrer">CPU_COMPLETION.md</a></p></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -69,7 +66,7 @@
     </div>
     <div>
       <p class="label">ドキュメント</p>
-      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li></ul>
+      <ul class="footer-links"><li><a href="/ja/docs/architecture/">アーキテクチャ</a></li><li><a href="/ja/docs/tiering/">階層</a></li><li><a href="/ja/docs/roadmap/">ロードマップ</a></li><li><a href="/ja/docs/quickstart/">クイックスタート</a></li><li><a href="/ja/docs/scaling/">ノード拡張</a></li></ul>
     </div>
     <div>
       <p class="label">プロジェクト</p>
