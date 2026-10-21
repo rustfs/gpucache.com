@@ -46,13 +46,13 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Docs</p>
-      <nav aria-label="Docs"><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/" aria-current="page">Tiering</a><a href="/docs/roadmap/">Roadmap</a><a href="/docs/quickstart/">Quick start</a></nav>
+      <nav aria-label="Docs"><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/" aria-current="page">Tiering</a><a href="/docs/roadmap/">Roadmap</a><a href="/docs/quickstart/">Quick start</a><a href="/docs/scaling/">Node scaling</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/docs/">Docs</a> <span aria-hidden="true">/</span> <span>Tiering</span></p>
 <p class="label">Docs</p>
 <h1>Tiering</h1>
 <p class="lede">The names below are the usual ones for inference KV Cache tiering. GPUCache is G3.5. It is not another name for G4.</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In development</span><p>GPUCache at G3.5 is in development. The table describes the intended place of each tier.</p></div>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>In development</span><p>Current implementation: CPU/TCP with host copies; persistent FileStore is a CPU reference backend. The DPU/NVMe/GDS layout in the table is a design target. Real RDMA, GDS and BlueField-3 remain NOT_RUN_HARDWARE. Cold tests use a mock; live RustFS integration is unqualified.</p></div>
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">Tier</th><th scope="col">Medium</th><th scope="col">Scope</th><th scope="col">Role for KV Cache</th><th scope="col">Product</th></tr></thead>
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">Docs</p>
-      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li></ul>
+      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li><li><a href="/docs/scaling/">Node scaling</a></li></ul>
     </div>
     <div>
       <p class="label">Project</p>

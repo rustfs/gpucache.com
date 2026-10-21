@@ -46,13 +46,13 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">Documentation</p>
-      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/" aria-current="page">Hiérarchie</a><a href="/fr/docs/roadmap/">Feuille de route</a><a href="/fr/docs/quickstart/">Démarrage</a></nav>
+      <nav aria-label="Documentation"><a href="/fr/docs/architecture/">Architecture</a><a href="/fr/docs/tiering/" aria-current="page">Niveaux</a><a href="/fr/docs/roadmap/">Feuille de route</a><a href="/fr/docs/quickstart/">Démarrage rapide</a><a href="/fr/docs/scaling/">Ajouter des nœuds</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/fr/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/fr/docs/">Documentation</a> <span aria-hidden="true">/</span> <span>Hiérarchie</span></p>
 <p class="label">Documentation</p>
 <h1>Hiérarchie</h1>
 <p class="lede">Les noms ci-dessous sont ceux qu&#x27;on utilise d&#x27;ordinaire pour hiérarchiser le KV Cache d&#x27;inférence. GPUCache est G3.5. Ce n&#x27;est pas un autre nom pour G4.</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>En développement</span><p>GPUCache en G3.5 est en développement. Le tableau décrit la place prévue de chaque couche.</p></div>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>En développement</span><p>Le chemin actuel utilise CPU/TCP avec copies hôte ; FileStore est un backend de référence CPU persistant. DPU/NVMe/GDS dans le tableau reste une cible. RDMA réel, GDS et BlueField-3 restent NOT_RUN_HARDWARE. Les tests froids utilisent un mock ; RustFS réel n’est pas qualifié.</p></div>
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">Couche</th><th scope="col">Support</th><th scope="col">Portée</th><th scope="col">Rôle pour le KV Cache</th><th scope="col">Produit</th></tr></thead>
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">Documentation</p>
-      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Hiérarchie</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage</a></li></ul>
+      <ul class="footer-links"><li><a href="/fr/docs/architecture/">Architecture</a></li><li><a href="/fr/docs/tiering/">Niveaux</a></li><li><a href="/fr/docs/roadmap/">Feuille de route</a></li><li><a href="/fr/docs/quickstart/">Démarrage rapide</a></li><li><a href="/fr/docs/scaling/">Ajouter des nœuds</a></li></ul>
     </div>
     <div>
       <p class="label">Projet</p>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scale from 1 to 3 to 10 nodes | GPUCache</title>
+  <meta name="description" content="GPUCache CPU/TCP scaling runbook: shard routes, epoch fencing, bounded connections, validation and rollback from 1 to 3 to 10 nodes." />
+  <link rel="canonical" href="https://gpucache.com/docs/scaling/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/scaling/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/scaling/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/scaling/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/scaling/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/scaling/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/scaling/" />
+  <meta property="og:title" content="Scale from 1 to 3 to 10 nodes | GPUCache" />
+  <meta property="og:description" content="GPUCache CPU/TCP scaling runbook: shard routes, epoch fencing, bounded connections, validation and rollback from 1 to 3 to 10 nodes." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/docs/scaling/" />
+  <meta property="og:locale" content="en_US" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="RustFS GPUCache home">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menu</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Sections">
+    <a href="/#problem">Problem</a><a href="/#approach">Approach</a><a href="/#architecture">Architecture</a><a href="/#roadmap">Roadmap</a><a href="/#rustfs">RustFS</a><a href="/#quickstart">Quick start</a><a href="/docs/" aria-current="page">Docs</a>
+    <ul class="lang-switch" aria-label="Language"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Language"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">Docs</p>
+      <nav aria-label="Docs"><a href="/docs/architecture/">Architecture</a><a href="/docs/tiering/">Tiering</a><a href="/docs/roadmap/">Roadmap</a><a href="/docs/quickstart/">Quick start</a><a href="/docs/scaling/" aria-current="page">Node scaling</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/">GPUCache</a> / <a href="/docs/">Docs</a> / Node scaling</p><p class="label">CPU / TCP <span class="status status-preview"><i aria-hidden="true"></i>In development</span></p><h1>Scale from 1 to 3 to 10 nodes</h1><p class="lede">Start with one shard and keep the same client API as the membership grows. Today this is an operator-coordinated CPU/TCP workflow. Starting another server does not join a cluster: the application must publish a complete route snapshot to every ShardedClient.</p><div class="callout"><p>The runnable example uses 1, 3 and 10 TCP servers in one process on localhost. It tests software contracts, not 10 physical hosts, production availability, GPU capacity or throughput. RDMA, GDS, BlueField-3 and live engine integration remain NOT_RUN_HARDWARE.</p></div><section class="doc-block"><h2>Choose the topology</h2><div class="table-wrap" tabindex="0"><table><thead><tr><th scope="col">Stage</th><th scope="col">Stable shard IDs</th><th scope="col">Example endpoints</th><th scope="col">Required epoch</th></tr></thead><tbody><tr><td>1 node</td><td>0</td><td>10.0.0.11:9735</td><td>Initial actual epoch E</td></tr><tr><td>3 nodes</td><td>0–2</td><td>10.0.0.11–13:9735</td><td>Every node > previous maximum epoch</td></tr><tr><td>10 nodes</td><td>0–9</td><td>10.0.0.11–20:9735</td><td>Every node > previous maximum epoch</td></tr></tbody></table></div><p>These private addresses are examples; provision your own reachable endpoints. Use one independent data directory per server and a unique stable shard ID per endpoint. IDs belong to the client route configuration, not to a server --shard-id flag. There is no --join, seed discovery, quorum or replication factor. Full CacheIdentity determines the rendezvous-hash owner; a key is not copied to all nodes.</p></section>
+<section class="doc-block"><h2>First, reproduce the local example</h2>
+<p>Build from the source revision linked below, after the quick-start prerequisites. The example prepares isolated temporary stores, stops and joins the old servers at each transition, advances all epochs, replaces the full client route set, rejects an old session and checks Lookup / Put / Commit / Get / Drained release on every shard. It cleans up its temporary directories.</p><pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-transport --example scaling_smoke
+cargo test -p gpucache-transport --example scaling_smoke</code></pre><p>Selected lines from a successful run are shown below. The full output also checks every shard: IDs 0, 0–2, and 0–9, respectively. These are correctness results, not performance measurements.</p><pre data-copy="Copy" data-copied="Copied"><code>status=SCALING_SMOKE_OK
+topology=SINGLE_PROCESS_LOCALHOST
+stage_shards=1 store_epoch=1 local_revision=1
+stage_shards=3 store_epoch=2 local_revision=2
+stage_shards=10 store_epoch=3 local_revision=3
+per_shard_roundtrips=14
+stale_sessions=REJECTED
+automatic_payload_migration=NONE
+durability_replication=NONE
+hardware=NOT_RUN_HARDWARE
+performance=NOT_A_PERFORMANCE_RESULT</code></pre></section>
+<section class="doc-block"><h2>Start one node</h2>
+<p>This loopback command starts an independent FileStore server. The fingerprint below is a public development fixture; use your own credential and tenant policy outside a local test. Configure ShardedClient with shard ID 0, this endpoint and the epoch obtained from the TCP handshake. Use its lease/session API so Put and Commit stay with the selected owner.</p><pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-transport --bin gpucache-tcp -- serve \
+  --data-dir ./data/shard-0 --bind 127.0.0.1:9735 \
+  --tenant 1 --trust 1 \
+  --fingerprint 0000000000000000000000000000000000000000000000000000000000000001</code></pre><p>For a remote node, bind its private interface (for example --bind 10.0.0.11:9735 --allow-remote) only on an isolated trusted fabric. --allow-remote enables neither TLS nor peer authentication. The fingerprint is a bearer-equivalent secret over plaintext TCP. The CLI starts a server; application code must construct the sharded client.</p></section>
+<section class="doc-block"><h2>Configure the client before the first stage</h2>
+<p>In application code that already supplies the authenticated context and verified initial endpoints, choose limits for the final topology when constructing the client. ClientLimits cannot be changed by replace_routes. This example configuration allows ten shards and one connection per shard throughout all three stages:</p><pre data-copy="Copy" data-copied="Copied"><code>use gpucache_transport::{ClientLimits, ShardedClient};
+
+let limits = ClientLimits {
+    max_shards: 10,
+    max_connections: 10,
+    max_connections_per_shard: 1,
+    max_frame_bytes: 2 * 1024 * 1024,
+    ..ClientLimits::default()
+};
+let client = ShardedClient::new(auth, endpoints, limits)?;</code></pre><p>The default per-shard connection cap is 4. Reducing max_connections to 3 while leaving that cap unchanged is invalid. Each server defaults to 16 connections shared across all clients; every client process has its own pool, so plan aggregate usage.</p><p>The CLI server uses a 2 MiB frame-body limit, matched above by max_frame_bytes. Frame limits are not negotiated: keep client and server limits aligned. The standalone scaling_smoke example instead uses matching 1 MiB library defaults on both sides.</p><p>A new client starts at local revision 1 regardless of the actual store epochs. After the coordinated server transition, read that client’s current revision and call client.replace_routes(revision, endpoints) with the complete snapshot. Revisions are local to each client; they are not store epochs or a shared consensus term.</p></section>
+<section class="doc-block"><h2>Move from 1 to 3 nodes</h2><ol><li>Prepare new shard IDs 1 and 2 with independent storage, consistent tenant/trust policy and reachable endpoints. Use the client limits chosen before the first stage; check server, pin, byte and retry budgets as well.</li><li>Pause every client that can reach the old owners. Stop new Lookup/Get/Put/Commit work, drain transfers and release pins with confirmed completion. Expiry alone is not proof that a transfer is drained. Resolve in-flight writes or cancel/fence them; do not carry their leases across the transition.</li><li>Stop and join all old server workers, or use an externally verified fence that prevents further reads and writes. replace_routes only changes local client state; it cannot fence a remote server. If this step cannot be proven, do not publish new routes.</li><li>Prepare every store under exclusive ownership so its next server handshake reports an epoch strictly greater than the previous snapshot maximum. Restart old owners and initialize/reopen new stores as needed. Validate the actual handshakes before making them reachable to clients.</li><li>Build a full snapshot for IDs 0, 1 and 2 with each actual address and epoch. For every paused client read let revision = client.stats().revision; then call client.replace_routes(revision, endpoints). Handle rejection; never send only newly added entries. Resume only after every required client has accepted the same complete snapshot.</li><li>After the transition, acquire a fresh session for new logical work. Within a valid epoch, keep a generation’s Commit/Get/Release on its original shard and epoch; do not reroute generation-only follow-ups. Discard fenced work rather than rewriting its epoch. Remapped identities have no automatic migration: recompute on miss/error and explicitly repopulate. Optional cold restore stays off the hot path.</li></ol><div class="callout"><p>Epoch trap: a fresh FileStore opens at 1; reopening its existing directory advances it by 1. There is no --epoch flag or admin epoch RPC. With a previous maximum of 1, all three new endpoints need at least 2, including the two new stores. With a previous maximum of 7, all need at least 8. The example performs bounded, exclusive reopen preparation; operators must provide equivalent orchestration. Never edit MANIFEST by hand.</p></div></section>
+<section class="doc-block"><h2>Move from 3 to 10 nodes</h2>
+<p>Repeat the same pause → drain → stop/fence → epoch preparation → complete snapshot → validation → resume sequence for IDs 0–9. For an initial all-1 then all-2 demonstration the next epoch is 3; in an existing deployment always use the observed previous maximum, not the node count. Use the limits provisioned when the client was constructed; route replacement does not resize them. Plan per-tenant limits, retry-table credit, pin/region credit, frame limits, memory and disk capacity per shard; adding nodes does not remove those bounds.</p><p>Clients route directly to the selected owner. ShardDirectory contains bounded metadata, not a central payload cache. Loss of one owner is a clean miss for its keys, not replica failover. Three nodes do not imply a quorum and ten nodes do not establish 10k-GPU readiness. Capacity and key distribution must be measured with your workload; this guide makes no linear throughput claim.</p></section>
+<section class="doc-block"><h2>Validate, observe and roll back</h2><ul><li>Record the source commit, each stable shard ID/address/actual epoch and the complete snapshot version used by every client. Ensure there are no duplicate IDs or endpoints.</li><li>Test a key owned by every shard: Lookup → Put → Commit → Get, byte comparison and Drained release. Verify wrong-tenant/identity requests cannot hit. A generation is shard-local: keep shard ID and epoch with it.</li><li>After a membership change, verify old sessions/leases are rejected and no pending write commits against the previous owner. Kill a test owner and confirm timeout/miss leads to recompute, never a different-identity hit.</li><li>Inspect client statistics and storage drain/quarantine/fence reports. Track logical descriptor bytes separately from wire bytes, quota failures, retries and connection usage. Reuse the repository CPU regression gate; do not treat it as a real-host qualification.</li><li>If publication or a smoke check fails, keep traffic paused. Repair the snapshot or return to the old node set using another coordinated stop/fence and a newer epoch for every endpoint. Never restore an old epoch/snapshot or revive an old lease. Any lost hot entries can be recomputed.</li></ul><pre data-copy="Copy" data-copied="Copied"><code>python3 scripts/ci/vm_regression.py --profile cpu --offline \
+  --output artifacts/scaling-cpu</code></pre></section>
+<section class="doc-block"><h2>Read the source</h2>
+<p>The repository runbook and executable example are the authority for the API. There is no turnkey cluster manager, online resharding/data migration, rolling-upgrade availability guarantee or production multi-host qualification in this guide.</p><p><a href="https://github.com/rustfs/GPUCache/blob/af5162912b87b24a722004aa61fece93b72fb7cf/docs/SCALING.md">SCALING.md</a> · <a href="https://github.com/rustfs/GPUCache/blob/af5162912b87b24a722004aa61fece93b72fb7cf/crates/transport/examples/scaling_smoke.rs">scaling_smoke.rs</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/OPERATIONS.md">OPERATIONS.md</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/SECURITY.md">SECURITY.md</a></p></section></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS is a trademark of RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Docs</p>
+      <ul class="footer-links"><li><a href="/docs/architecture/">Architecture</a></li><li><a href="/docs/tiering/">Tiering</a></li><li><a href="/docs/roadmap/">Roadmap</a></li><li><a href="/docs/quickstart/">Quick start</a></li><li><a href="/docs/scaling/">Node scaling</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Project</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache 2.0 license</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Language"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

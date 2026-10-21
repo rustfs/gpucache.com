@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Von 1 auf 3 und dann auf 10 Knoten | GPUCache</title>
+  <meta name="description" content="GPUCache CPU/TCP skalieren: vollständige Routen, Epoch-Fencing, Verbindungslimits, Prüfung und Rückkehr zur alten Knotengruppe." />
+  <link rel="canonical" href="https://gpucache.com/de/docs/scaling/" />
+  <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/scaling/" />
+  <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/scaling/" />
+  <link rel="alternate" hreflang="de" href="https://gpucache.com/de/docs/scaling/" />
+  <link rel="alternate" hreflang="fr" href="https://gpucache.com/fr/docs/scaling/" />
+  <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/scaling/" />
+  <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/scaling/" />
+  <meta property="og:title" content="Von 1 auf 3 und dann auf 10 Knoten | GPUCache" />
+  <meta property="og:description" content="GPUCache CPU/TCP skalieren: vollständige Routen, Epoch-Fencing, Verbindungslimits, Prüfung und Rückkehr zur alten Knotengruppe." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gpucache.com/de/docs/scaling/" />
+  <meta property="og:locale" content="de_DE" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,700..800&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#top">Zum Inhalt</a>
+<header class="site-header">
+  <a class="brand" href="/de/" aria-label="RustFS GPUCache Startseite">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span>RustFS</span>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-product">GPUCache</span>
+  </a>
+  <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">Menü</button>
+  <nav class="site-nav" id="site-nav" data-nav aria-label="Abschnitte">
+    <a href="/de/#problem">Problem</a><a href="/de/#approach">Ansatz</a><a href="/de/#architecture">Architektur</a><a href="/de/#roadmap">Roadmap</a><a href="/de/#rustfs">RustFS</a><a href="/de/#quickstart">Schnellstart</a><a href="/de/docs/" aria-current="page">Dokumentation</a>
+    <ul class="lang-switch" aria-label="Sprache"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-current="page" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+  </nav>
+  <div class="header-tools">
+    <ul class="lang-switch" aria-label="Sprache"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-current="page" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    <a class="button" href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+<main id="top">
+  <div class="container docs-layout">
+    <aside class="docs-nav">
+      <p class="label">Dokumentation</p>
+      <nav aria-label="Dokumentation"><a href="/de/docs/architecture/">Architektur</a><a href="/de/docs/tiering/">Tiering</a><a href="/de/docs/roadmap/">Roadmap</a><a href="/de/docs/quickstart/">Schnellstart</a><a href="/de/docs/scaling/" aria-current="page">Knoten skalieren</a></nav>
+    </aside>
+    <article class="doc-article"><p class="breadcrumb"><a href="/de/">GPUCache</a> / <a href="/de/docs/">Dokumentation</a> / Knoten skalieren</p><p class="label">CPU / TCP <span class="status status-preview"><i aria-hidden="true"></i>In Entwicklung</span></p><h1>Von 1 auf 3 und dann auf 10 Knoten</h1><p class="lede">Beginnen Sie mit einem Shard und behalten Sie dieselbe Client-API. Der CPU/TCP-Pfad benötigt derzeit koordinierte Betriebsschritte. Ein gestarteter Server tritt keinem Cluster automatisch bei: Jeder ShardedClient benötigt den vollständigen Routen-Snapshot.</p><div class="callout"><p>Das Beispiel betreibt 1, 3 und 10 localhost-TCP-Server in einem Prozess. Es prüft Softwareverträge, keine zehn physischen Hosts, Produktionsverfügbarkeit, GPU-Kapazität oder Leistung. RDMA, GDS, BlueField-3 und reale Engines bleiben NOT_RUN_HARDWARE.</p></div><section class="doc-block"><h2>Topologie</h2><div class="table-wrap" tabindex="0"><table><thead><tr><th scope="col">Stufe</th><th scope="col">Stabile Shard-IDs</th><th scope="col">Beispieladressen</th><th scope="col">Epoch-Bedingung</th></tr></thead><tbody><tr><td>1 Knoten</td><td>0</td><td>10.0.0.11:9735</td><td>Tatsächliche Anfangs-Epoch E</td></tr><tr><td>3 Knoten</td><td>0–2</td><td>10.0.0.11–13:9735</td><td>Jeder Knoten über dem bisherigen Maximum</td></tr><tr><td>10 Knoten</td><td>0–9</td><td>10.0.0.11–20:9735</td><td>Jeder Knoten über dem bisherigen Maximum</td></tr></tbody></table></div><p>Ersetzen Sie die Beispieladressen durch erreichbare Endpunkte. Jeder Server benötigt ein unabhängiges Datenverzeichnis und eine eindeutige stabile Shard-ID in der Client-Konfiguration. Es gibt kein --shard-id, --join, Seed-Discovery, Quorum oder Replikationsfaktor im Server. Rendezvous-Hashing über die vollständige CacheIdentity bestimmt genau einen Eigentümer.</p></section>
+<section class="doc-block"><h2>Lokales Beispiel</h2>
+<p>Nach den Voraussetzungen im Schnellstart führen Sie die verlinkte Quellversion aus. Das Beispiel erstellt temporäre Stores, stoppt und joint alte Server, erhöht alle Epochs, ersetzt alle Routen, verwirft alte Sessions und prüft Lookup / Put / Commit / Get / Drained-Freigabe pro Shard. Es entfernt seine temporären Verzeichnisse.</p><pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-transport --example scaling_smoke
+cargo test -p gpucache-transport --example scaling_smoke</code></pre><p>Auszug aus einem erfolgreichen Lauf. Die vollständige Ausgabe prüft alle Shards der jeweiligen Stufe: IDs 0, 0–2 und 0–9. Das sind Korrektheitsprüfungen, keine Leistungsmessungen.</p><pre data-copy="Copy" data-copied="Copied"><code>status=SCALING_SMOKE_OK
+topology=SINGLE_PROCESS_LOCALHOST
+stage_shards=1 store_epoch=1 local_revision=1
+stage_shards=3 store_epoch=2 local_revision=2
+stage_shards=10 store_epoch=3 local_revision=3
+per_shard_roundtrips=14
+stale_sessions=REJECTED
+automatic_payload_migration=NONE
+durability_replication=NONE
+hardware=NOT_RUN_HARDWARE
+performance=NOT_A_PERFORMANCE_RESULT</code></pre></section>
+<section class="doc-block"><h2>Einen Knoten starten</h2>
+<p>Dieser Befehl startet einen einzelnen FileStore auf Loopback. Der öffentliche Test-Fingerprint ist keine Produktionskennung. Verwenden Sie außerhalb lokaler Tests eigene Zugangsdaten und Richtlinien. Konfigurieren Sie ShardedClient mit ID 0, Adresse und tatsächlicher Epoch aus dem TCP-Handshake. Die Lease/Session-API hält Put und Commit beim gewählten Eigentümer.</p><pre data-copy="Copy" data-copied="Copied"><code>cargo run -p gpucache-transport --bin gpucache-tcp -- serve \
+  --data-dir ./data/shard-0 --bind 127.0.0.1:9735 \
+  --tenant 1 --trust 1 \
+  --fingerprint 0000000000000000000000000000000000000000000000000000000000000001</code></pre><p>Remote nur im isolierten vertrauenswürdigen Netz binden, etwa mit --bind 10.0.0.11:9735 --allow-remote. Das aktiviert weder TLS noch kryptografische Peer-Authentisierung. Der Fingerprint ist eine Bearer-ähnliche Kennung über Klartext-TCP. Die CLI startet nur den Server; der Client wird in Anwendungscode konfiguriert.</p></section>
+<section class="doc-block"><h2>Client vor der ersten Stufe konfigurieren</h2>
+<p>Wählen Sie beim Erstellen des Clients die Grenzen für die endgültige Topologie. Der Anwendungscode muss den authentifizierten Kontext und geprüfte Anfangsendpunkte bereitstellen. replace_routes ändert ClientLimits nicht. Diese Konfiguration erlaubt in allen Stufen zehn Shards mit je einer Verbindung:</p><pre data-copy="Copy" data-copied="Copied"><code>use gpucache_transport::{ClientLimits, ShardedClient};
+
+let limits = ClientLimits {
+    max_shards: 10,
+    max_connections: 10,
+    max_connections_per_shard: 1,
+    max_frame_bytes: 2 * 1024 * 1024,
+    ..ClientLimits::default()
+};
+let client = ShardedClient::new(auth, endpoints, limits)?;</code></pre><p>Das Standardlimit pro Shard beträgt 4 Verbindungen. Nur max_connections auf 3 zu senken wäre damit ungültig. Jeder Server akzeptiert standardmäßig 16 Verbindungen über alle Clients zusammen; jeder Clientprozess besitzt einen eigenen Pool. Planen Sie die Gesamtnutzung.</p><p>Der CLI-Server begrenzt den Frame-Body auf 2 MiB; max_frame_bytes oben entspricht diesem Wert. Frame-Grenzen werden nicht ausgehandelt. Stimmen Sie Client und Server aufeinander ab. Das eigenständige Beispiel scaling_smoke verwendet dagegen auf beiden Seiten die passenden Bibliotheksstandardwerte von 1 MiB.</p><p>Ein neuer Client beginnt unabhängig von den tatsächlichen Store-Epochs mit lokaler Revision 1. Lesen Sie nach dem koordinierten Serverwechsel seine aktuelle Revision und rufen Sie client.replace_routes(revision, endpoints) mit dem vollständigen Snapshot auf. Revisionen gelten pro Client; sie sind weder Store-Epochs noch gemeinsame Konsens-Terme.</p></section>
+<section class="doc-block"><h2>Von 1 auf 3</h2><ol><li>Neue Shard-IDs 1 und 2 mit getrennten Verzeichnissen, gleicher Tenant/Trust-Policy und erreichbaren Adressen vorbereiten. Die vor der ersten Stufe gewählten Clientgrenzen verwenden und Server-, Pin-, Byte- und Retry-Budgets prüfen.</li><li>Alle Clients pausieren und neue Lookup/Get/Put/Commit-Aufträge stoppen. Transfers abschließen und Pins nach bestätigtem Abschluss mit Drained freigeben. Lease-Ablauf beweist keinen Drain. Offene Writes abschließen oder abbrechen und einzäunen; alte Leases nicht übernehmen.</li><li>Alte Server samt Workern stoppen und joinen oder extern nachweisbar gegen weitere Lese- und Schreibzugriffe einzäunen. replace_routes verändert nur den lokalen Client; es führt kein Remote-Fencing aus. Ohne Nachweis keine neue Route veröffentlichen.</li><li>Alle Verzeichnisse exklusiv vorbereiten, sodass der nächste Handshake jedes Servers eine Epoch über dem bisherigen Maximum meldet. Alte Stores neu starten, neue Stores nach Bedarf initialisieren und erneut öffnen. Vor Freigabe alle tatsächlichen Epochs prüfen.</li><li>Einen vollständigen Snapshot für IDs 0, 1 und 2 mit tatsächlichen Adressen und Epochs erstellen. Je pausiertem Client let revision = client.stats().revision; lesen und client.replace_routes(revision, endpoints) aufrufen. Ablehnungen behandeln und keine bloße Änderungsliste senden. Erst fortfahren, wenn alle erforderlichen Clients denselben vollständigen Snapshot angenommen haben.</li><li>Nach dem Wechsel eine neue Session für neue logische Arbeit beziehen. Innerhalb einer gültigen Epoch bleiben Commit/Get/Release einer Generation auf dem ursprünglichen Shard und seiner Epoch; generationbasierte Folgeoperationen nicht neu routen. Eingezäunte Arbeit verwerfen, ihre Epoch nicht umschreiben. Umverteilte Identitäten werden nicht automatisch migriert: bei Miss/Fehler neu berechnen und explizit zurückschreiben. Optionale Cold-Restores bleiben außerhalb des heißen Pfads.</li></ol><div class="callout"><p>Ein frischer FileStore beginnt bei 1; erneutes Öffnen eines vorhandenen Verzeichnisses erhöht um 1. Es gibt weder --epoch noch eine Admin-Epoch-RPC. War das Maximum 1, benötigen auch neue Knoten mindestens 2; war es 7, benötigen alle mindestens 8. Das Beispiel öffnet Stores exklusiv und begrenzt oft erneut. Im Betrieb ist entsprechende Orchestrierung erforderlich. MANIFEST niemals manuell ändern.</p></div></section>
+<section class="doc-block"><h2>Von 3 auf 10</h2>
+<p>Für IDs 0–9 denselben Ablauf wiederholen: pausieren → drain → stoppen/fencen → Epoch vorbereiten → vollständige Routen → prüfen → fortsetzen. Nach überall 1 und überall 2 folgt im Beispiel 3; im Betrieb zählt das beobachtete Maximum, nicht die Knotenzahl. Die beim Erstellen des Clients vorgesehenen Grenzen verwenden; Routenwechsel ändern sie nicht. Tenant-, Retry-, Pin/Region-, Frame-, Speicher- und Plattenbudgets je Shard planen.</p><p>Clients greifen direkt auf Eigentümer zu. ShardDirectory hält begrenzte Metadaten, keinen zentralen Payload-Cache. Knotenausfall ist ein Miss, kein Replikat-Failover. Drei Knoten bilden kein Quorum; zehn belegen keine Eignung für 10.000 GPUs. Verteilung und Kapazität müssen mit der eigenen Last gemessen werden.</p></section>
+<section class="doc-block"><h2>Prüfen und zurückkehren</h2><ul><li>Commit, stabile IDs, Adressen, tatsächliche Epochs und vollständige Client-Snapshot-Version protokollieren. Doppelte IDs oder Endpunkte ausschließen.</li><li>Je Shard Lookup → Put → Commit → Get, Bytevergleich und Drained-Freigabe prüfen; fremde Tenants/Identitäten dürfen nicht treffen. Generationen sind shardlokal: ID und Epoch mitführen.</li><li>Alte Sessions/Leases müssen abgewiesen werden; offene alte Writes dürfen nicht in die neue Mitgliedschaft committen. Testweise einen Eigentümer stoppen und Miss/Timeout → Neuberechnung prüfen.</li><li>Client-Statistik und Drain/Quarantine/Fence-Berichte beobachten. Logische Deskriptorbytes von Wire-Bytes trennen; Quotenfehler, Retries und Verbindungen prüfen. CPU-Regression ist keine reale Mehrhost-Qualifikation.</li><li>Bei Fehlern pausiert bleiben. Snapshot reparieren oder mit erneutem Stop/Fence und höheren Epochs zur alten Knotengruppe zurückkehren. Alte Epochs, Snapshots und Leases niemals reaktivieren. Heiße Daten dürfen neu berechnet werden.</li></ul><pre data-copy="Copy" data-copied="Copied"><code>python3 scripts/ci/vm_regression.py --profile cpu --offline \
+  --output artifacts/scaling-cpu</code></pre></section>
+<section class="doc-block"><h2>Quellen</h2>
+<p>Maßgeblich sind Runbook und ausführbares Beispiel. Es gibt keinen fertigen Clustermanager, keine Online-Migration, keine Verfügbarkeitsgarantie für Rolling-Upgrades und keine Produktionsqualifikation mehrerer physischer Hosts.</p><p><a href="https://github.com/rustfs/GPUCache/blob/af5162912b87b24a722004aa61fece93b72fb7cf/docs/SCALING.md">SCALING.md</a> · <a href="https://github.com/rustfs/GPUCache/blob/af5162912b87b24a722004aa61fece93b72fb7cf/crates/transport/examples/scaling_smoke.rs">scaling_smoke.rs</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/OPERATIONS.md">OPERATIONS.md</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/SECURITY.md">SECURITY.md</a></p></section></article>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/de/"><span class="brand-mark" aria-hidden="true"></span><span>RustFS</span><span class="brand-sep" aria-hidden="true"></span><span class="brand-product">GPUCache</span></a>
+      <p>© 2026 RustFS, Inc. · Apache 2.0 · RustFS ist eine Marke von RustFS, Inc.</p>
+    </div>
+    <div>
+      <p class="label">Dokumentation</p>
+      <ul class="footer-links"><li><a href="/de/docs/architecture/">Architektur</a></li><li><a href="/de/docs/tiering/">Tiering</a></li><li><a href="/de/docs/roadmap/">Roadmap</a></li><li><a href="/de/docs/quickstart/">Schnellstart</a></li><li><a href="/de/docs/scaling/">Knoten skalieren</a></li></ul>
+    </div>
+    <div>
+      <p class="label">Projekt</p>
+      <ul class="footer-links"><li><a href="https://github.com/rustfs/GPUCache" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/rustfs/GPUCache/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/rustfs/GPUCache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Apache-2.0-Lizenz</a></li><li><a href="https://rustfs.com" target="_blank" rel="noopener noreferrer">RustFS</a></li></ul>
+      <ul class="lang-switch" aria-label="Sprache"><li><a href="/docs/scaling/" hreflang="en" lang="en" aria-label="English">EN</a></li><li><a href="/ja/docs/scaling/" hreflang="ja" lang="ja" aria-label="日本語">JA</a></li><li><a href="/de/docs/scaling/" hreflang="de" lang="de" aria-current="page" aria-label="Deutsch">DE</a></li><li><a href="/fr/docs/scaling/" hreflang="fr" lang="fr" aria-label="Français">FR</a></li><li><a href="/zh/docs/scaling/" hreflang="zh" lang="zh-CN" aria-label="中文">中文</a></li></ul>
+    </div>
+  </div>
+</footer>
+<script src="/script.js" defer></script>
+</body>
+</html>

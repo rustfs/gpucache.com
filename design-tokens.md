@@ -54,10 +54,10 @@ Do not introduce other blues, gradients, glows, or glass.
 ## Copy constraints
 
 - The tier name on every page is G3.5.
-- GPUCache is a DPU-based GDS KVCache. BlueField-3 support, the direct data path, and vLLM / TensorRT-LLM integration stay marked in development.
+- GPUCache is a G3.5 shared KV cache. CPU/TCP with host copies is the implemented reference path. DPU/GDS, BlueField-3 and real vLLM / TensorRT-LLM integration are development targets, not active offload.
 - Name only BlueField-3, and only as in development.
-- The storage side does not need an x86 storage host. KV on the hot path is not forwarded by the host CPU. Compute nodes still register memory, submit requests, and collect completions.
+- Describe the host-bypass storage path only as a hardware design target. The current CPU/TCP reference path uses the host CPU and host copies. CPU/aarch64 tests do not qualify DPU offload.
 - RustFS is the G4 capacity tier and owns cold-data durability. A G3.5 loss is a clean miss: recompute, then write back. Say that, and stop there.
 - Do not publish a competitor comparison, a performance number, or any community count, in any language, including the docs.
-- The main branch of <https://github.com/rustfs/GPUCache> currently contains `README.md` and `LICENSE` only. The V1 core is in development in a separate pull request and is not described as implemented.
+- Verify implementation claims against the linked GPUCache source revision. Source builds and CPU tests exist. Never equate a local 1/3/10-server test with physical multi-host validation, automatic clustering, online migration, replication or production readiness.
 - PagedAttention is spelled with a d. Feedback goes to Issues.

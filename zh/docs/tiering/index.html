@@ -46,13 +46,13 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">文档</p>
-      <nav aria-label="文档"><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/" aria-current="page">分层</a><a href="/zh/docs/roadmap/">路线图</a><a href="/zh/docs/quickstart/">快速开始</a></nav>
+      <nav aria-label="文档"><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/" aria-current="page">分层</a><a href="/zh/docs/roadmap/">路线图</a><a href="/zh/docs/quickstart/">快速开始</a><a href="/zh/docs/scaling/">节点扩容</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/zh/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/zh/docs/">文档</a> <span aria-hidden="true">/</span> <span>分层</span></p>
 <p class="label">文档</p>
 <h1>分层</h1>
 <p class="lede">各层采用推理 KV Cache 分层的通用说法。GPUCache 位于 G3.5，不是 G4 的另一种写法。</p>
-<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>开发中</span><p>G3.5 上的 GPUCache 仍在开发中。下表写的是每一层预定的位置。</p></div>
+<div class="callout"><span class="status status-preview"><i aria-hidden="true"></i>开发中</span><p>当前实现是经过主机拷贝的 CPU/TCP 路径，持久化 FileStore 是 CPU 参考后端。表中的 DPU/NVMe/GDS 路径属于设计目标。真实 RDMA、GDS、BlueField-3 仍为 NOT_RUN_HARDWARE。冷层测试使用 mock，尚未验证连接真实 RustFS。</p></div>
 <div class="table-wrap" tabindex="0">
   <table>
     <thead><tr><th scope="col">层级</th><th scope="col">介质</th><th scope="col">作用域</th><th scope="col">在 KV Cache 里的角色</th><th scope="col">对应产品</th></tr></thead>
@@ -71,7 +71,7 @@
     </div>
     <div>
       <p class="label">文档</p>
-      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
+      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li><li><a href="/zh/docs/scaling/">节点扩容</a></li></ul>
     </div>
     <div>
       <p class="label">项目</p>

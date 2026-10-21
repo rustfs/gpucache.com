@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>路线图｜GPUCache</title>
-  <meta name="description" content="GPUCache 路线图。已实现表示已经在主分支上。引擎、RDMA、SPDK、DOCA、数据路径和推理框架对接都在开发中。" />
+  <meta name="description" content="GPUCache 状态：CPU/TCP、分片、冷层 mock 和模拟契约已可运行；真实引擎集成、RDMA、GDS 与 BlueField-3 尚未验证。" />
   <link rel="canonical" href="https://gpucache.com/zh/docs/roadmap/" />
   <link rel="alternate" hreflang="en" href="https://gpucache.com/docs/roadmap/" />
   <link rel="alternate" hreflang="ja" href="https://gpucache.com/ja/docs/roadmap/" />
@@ -13,7 +13,7 @@
   <link rel="alternate" hreflang="zh" href="https://gpucache.com/zh/docs/roadmap/" />
   <link rel="alternate" hreflang="x-default" href="https://gpucache.com/docs/roadmap/" />
   <meta property="og:title" content="路线图｜GPUCache" />
-  <meta property="og:description" content="GPUCache 路线图。已实现表示已经在主分支上。引擎、RDMA、SPDK、DOCA、数据路径和推理框架对接都在开发中。" />
+  <meta property="og:description" content="GPUCache 状态：CPU/TCP、分片、冷层 mock 和模拟契约已可运行；真实引擎集成、RDMA、GDS 与 BlueField-3 尚未验证。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://gpucache.com/zh/docs/roadmap/" />
   <meta property="og:locale" content="zh_CN" />
@@ -46,19 +46,16 @@
   <div class="container docs-layout">
     <aside class="docs-nav">
       <p class="label">文档</p>
-      <nav aria-label="文档"><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/">分层</a><a href="/zh/docs/roadmap/" aria-current="page">路线图</a><a href="/zh/docs/quickstart/">快速开始</a></nav>
+      <nav aria-label="文档"><a href="/zh/docs/architecture/">架构</a><a href="/zh/docs/tiering/">分层</a><a href="/zh/docs/roadmap/" aria-current="page">路线图</a><a href="/zh/docs/quickstart/">快速开始</a><a href="/zh/docs/scaling/">节点扩容</a></nav>
     </aside>
     <article class="doc-article"><p class="breadcrumb"><a href="/zh/">GPUCache</a> <span aria-hidden="true">/</span> <a href="/zh/docs/">文档</a> <span aria-hidden="true">/</span> <span>路线图</span></p>
 <p class="label">文档</p>
 <h1>路线图</h1>
-<p class="lede">状态以 GitHub 仓库主分支为准，随版本更新。本页不承诺发布日期，也不承诺版本号。</p>
-<div class="table-wrap" tabindex="0">
-  <table>
-    <thead><tr><th scope="col">状态</th><th scope="col">事项</th></tr></thead>
-    <tbody><tr><td><span class="status status-done"><i aria-hidden="true"></i>已实现</span></td><td>开源仓库建立，采用 Apache 2.0 许可</td></tr><tr><td><span class="status status-done"><i aria-hidden="true"></i>已实现</span></td><td>产品定位与架构方向：G3.5 层、基于 DPU 的 GDS KVCache、热层与 G4 RustFS 分工</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>V1 核心：Rust KV 引擎</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>RDMA / RoCEv2 通信层</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>SPDK 集成，直接访问 NVMe</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>NVIDIA DOCA 集成与 Arm 交叉编译，BlueField-3 支持</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>数据路径：经主机内存路径 → GDS 直通</td></tr><tr><td><span class="status status-preview"><i aria-hidden="true"></i>开发中</span></td><td>推理框架对接（vLLM、TensorRT-LLM）</td></tr></tbody>
-  </table>
-</div>
-<div class="doc-block"><h2>两种状态怎么读</h2><p>已实现指的是仓库已经建立、方向已经写下来。它不表示已经有一个在跑的缓存。</p><p>开发中表示这件事还不在主分支上。V1 核心，也就是 Rust KV 引擎，在另一个 pull request 里。对应行只有进入主分支之后，才会改成已实现。</p><p>截至 2026-10-15，主分支只有 README.md 和 LICENSE。README 里未勾选的事项，本站不写成项目已经具备的能力。</p></div></article>
+<p class="lede">路线图区分可获取的源码、可复现的 CPU 契约与硬件验证，不承诺发布日期或实测集群容量。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th scope="col">状态</th><th scope="col">能力</th><th scope="col">边界</th></tr></thead><tbody><tr><td>CPU/TCP 已可运行</td><td>身份、生命周期、MemoryStore/FileStore、TCP ACL 与读取准入</td><td>使用合成数据测试；依赖可信网络边界，未实现 mTLS。</td></tr><tr><td>CPU/TCP 已可运行</td><td>有界分片客户端、成员更新与 epoch fencing</td><td>路由由运维方管理；没有分布式共识或集群规模认证。</td></tr><tr><td>mock 契约已可运行</td><td>G4 v3 清单、有界写入队列、回填与保留策略</td><td>真实 RustFS：NOT_RUN_HARDWARE；孤儿对象不自动回收。</td></tr><tr><td>CPU 模拟已可运行</td><td>DPU 消息、故障注入与 TCP 功能对照</td><td>没有设备卸载、零拷贝、吞吐或 TCO 实证。</td></tr><tr><td>伪造块实验已可运行</td><td>EngineBlockContract 与 engine-spike</td><td>真实 vLLM 导出／导入：NOT_RUN_HARDWARE；GPU／模型运行：NOT_RUN_BUDGET。</td></tr><tr><td>开发中</td><td>真实 RDMA、GDS、BlueField-3 / DOCA 与 SPDK</td><td>NOT_RUN_HARDWARE；可选特性不链接设备，并保持拒绝打开。</td></tr></tbody></table></div>
+<div class="doc-block"><h2>下一步所需证据</h2><p>在获得 GPU 与模型资源授权后验证真实引擎，再以合适的成对基线测试硬件路径。取得证据前保留 TCO_UNKNOWN 与 NOT_EVALUATED。源码可用不代表已有可安装版本或生产就绪。</p></div>
+<div class="doc-block"><h2>持续保持的边界</h2><p>RustFS 不进入热路径。G3.5 数据丢失后重新计算，不计划增加热层纠删码或持久性副本。扩展依靠有界分片、fencing 与干净未命中，不能宣称已验证 10,000 张 GPU。</p></div>
+<div class="doc-block"><h2>相关文档</h2><p><a href="/zh/docs/quickstart/">快速开始</a> · <a href="/zh/docs/architecture/">架构</a> · <a href="/zh/docs/scaling/">扩展与部署边界</a> · <a href="https://github.com/rustfs/GPUCache/blob/main/docs/CPU_COMPLETION.md" target="_blank" rel="noopener noreferrer">CPU_COMPLETION.md</a></p></div></article>
   </div>
 </main>
 <footer class="site-footer">
@@ -69,7 +66,7 @@
     </div>
     <div>
       <p class="label">文档</p>
-      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li></ul>
+      <ul class="footer-links"><li><a href="/zh/docs/architecture/">架构</a></li><li><a href="/zh/docs/tiering/">分层</a></li><li><a href="/zh/docs/roadmap/">路线图</a></li><li><a href="/zh/docs/quickstart/">快速开始</a></li><li><a href="/zh/docs/scaling/">节点扩容</a></li></ul>
     </div>
     <div>
       <p class="label">项目</p>
